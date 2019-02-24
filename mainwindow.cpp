@@ -6,12 +6,22 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    myView = new MyGLView(this);
-    setCentralWidget(myView);
+    myOCCView = new MyGLView(this);
+    setCentralWidget(myOCCView);
 
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+
+}
+
+void MainWindow::on_actionLine_triggered()
+{
+    myOCCView->drawLine();
 }

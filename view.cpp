@@ -11,6 +11,58 @@
 
 #include <Aspect_Handle.hxx>
 #include <Aspect_DisplayConnection.hxx>
+//
+#include <QToolBar>
+#include <QTreeView>
+#include <QMessageBox>
+#include <QDockWidget>
+
+#include <gp_Circ.hxx>
+#include <gp_Elips.hxx>
+#include <gp_Pln.hxx>
+
+#include <gp_Lin2d.hxx>
+
+#include <Geom_ConicalSurface.hxx>
+#include <Geom_ToroidalSurface.hxx>
+#include <Geom_CylindricalSurface.hxx>
+
+#include <GCE2d_MakeSegment.hxx>
+
+#include <TopoDS.hxx>
+#include <TopExp.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TColgp_Array1OfPnt2d.hxx>
+
+#include <BRepLib.hxx>
+
+#include <BRepBuilderAPI_MakeVertex.hxx>
+#include <BRepBuilderAPI_MakeEdge.hxx>
+#include <BRepBuilderAPI_MakeWire.hxx>
+#include <BRepBuilderAPI_MakeFace.hxx>
+#include <BRepBuilderAPI_Transform.hxx>
+#include <BRepBuilderAPI_MakePolygon.hxx>
+
+#include <BRepPrimAPI_MakeBox.hxx>
+#include <BRepPrimAPI_MakeCone.hxx>
+#include <BRepPrimAPI_MakeSphere.hxx>
+#include <BRepPrimAPI_MakeCylinder.hxx>
+#include <BRepPrimAPI_MakeTorus.hxx>
+#include <BRepPrimAPI_MakePrism.hxx>
+#include <BRepPrimAPI_MakeRevol.hxx>
+
+#include <BRepFilletAPI_MakeFillet.hxx>
+#include <BRepFilletAPI_MakeChamfer.hxx>
+
+#include <BRepOffsetAPI_MakePipe.hxx>
+#include <BRepOffsetAPI_ThruSections.hxx>
+
+#include <BRepAlgoAPI_Cut.hxx>
+#include <BRepAlgoAPI_Fuse.hxx>
+#include <BRepAlgoAPI_Common.hxx>
+
+#include <AIS_Shape.hxx>
+//
 
 #ifdef WNT
     #include <WNT_Window.hxx>
@@ -412,4 +464,14 @@ void MyGLView::panByMiddleButton( const QPoint& thePoint )
     aCenterY = aSize.height() / 2;
 
     myView->Pan(aCenterX - thePoint.x(), thePoint.y() - aCenterY);
+}
+
+void MyGLView::drawLine()
+{
+    TopoDS_Shape aTopoBox = BRepPrimAPI_MakeBox(3.0, 4.0, 5.0).Shape();
+    Handle(AIS_Shape) anAisBox = new AIS_Shape(aTopoBox);
+
+    anAisBox->SetColor(Quantity_NOC_AZURE);
+
+    myContext->Display(anAisBox, Standard_True);
 }

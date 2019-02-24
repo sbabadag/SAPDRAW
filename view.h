@@ -40,6 +40,8 @@ public slots:
     void reset(void);
     void zoom(void);
     void rotate(void);
+    void drawLine();
+
 
 protected:
     // Paint events.
