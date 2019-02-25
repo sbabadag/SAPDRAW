@@ -1,6 +1,7 @@
 #ifndef VIEW_H
 #define VIEW_H
 #include <QGLWidget>
+#include <QMainWindow>
 
 #include <AIS_InteractiveContext.hxx>
 
@@ -27,9 +28,14 @@ public:
 public:
     //! constructor.
     MyGLView(QWidget* parent);
+    void *ui;
+    QStatusBar *Bar;
+
 
     const Handle(AIS_InteractiveContext)& getContext() const;
 
+    BOOL analyse_point(gp_Pnt p);
+    void drawCircle(gp_Pnt a);
 signals:
     void selectionChanged(void);
 
@@ -41,6 +47,7 @@ public slots:
     void zoom(void);
     void rotate(void);
     void drawLine();
+
 
 
 protected:
@@ -104,6 +111,7 @@ private:
 
     //! rubber rectangle for the mouse selection.
     QRubberBand* myRectBand;
+
 
 };
 #endif // VIEW_H

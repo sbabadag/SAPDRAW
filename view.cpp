@@ -1,67 +1,281 @@
 #include <OpenGl_GraphicDriver.hxx>
 
 #include "View.h"
+#include "occ_helper_functions.h"
+#include "mainwindow.h"
+#include <QMainWindow>
+#include <QStatusBar>
+
 
 #include <QMenu>
 #include <QMouseEvent>
 #include <QRubberBand>
 #include <QStyleFactory>
 
+#include <GeomAPI_IntCS.hxx>
+#include <GC_MakeLine.hxx>
+#include <ElSLib.hxx>
+#include <ProjLib.hxx>
+#include <BRepOffsetAPI_MakePipe.hxx>
+#include <Geom_BezierCurve.hxx>
+#include <Geom_Plane.hxx>
+#include <Geom_CylindricalSurface.hxx>
+#include <Geom_ConicalSurface.hxx>
+#include <Geom_SphericalSurface.hxx>
+#include <Geom_ToroidalSurface.hxx>
+#include <Geom_SurfaceOfLinearExtrusion.hxx>
+#include <Geom_SurfaceOfRevolution.hxx>
+#include <Geom_BezierSurface.hxx>
+#include <Geom_BSplineSurface.hxx>
+#include <Geom_RectangularTrimmedSurface.hxx>
+#include <Geom_OffsetSurface.hxx>
+#include <GeomToIGES_GeomSurface.hxx>
+#include <BRepTools.hxx>
+#include <Standard_DefineHandle.hxx>
+#include <DsgPrs_LengthPresentation.hxx>
+#include <GCPnts_TangentialDeflection.hxx>
+#include <Geom_Axis2Placement.hxx>
+#include <Geom_CartesianPoint.hxx>
+#include <Geom_Line.hxx>
+#include <Geom_Surface.hxx>
+#include <BRepAdaptor_Surface.hxx>
+#include <GeomAbs_CurveType.hxx>
+#include <GeomAdaptor_Curve.hxx>
+#include <GeomTools_Curve2dSet.hxx>
+#include <gp_Vec.hxx>
+#include <Graphic3d_NameOfMaterial.hxx>
+#include <MMgt_TShared.hxx>
+#include <OSD_Environment.hxx>
+#include <Precision.hxx>
+#include <Prs3d_IsoAspect.hxx>
+#include <Prs3d_LineAspect.hxx>
+#include <Prs3d_Projector.hxx>
+#include <Prs3d_Text.hxx>
+#include <Quantity_Factor.hxx>
+#include <Quantity_Length.hxx>
+#include <Quantity_NameOfColor.hxx>
+#include <Quantity_PhysicalQuantity.hxx>
+#include <Quantity_PlaneAngle.hxx>
+#include <Quantity_TypeOfColor.hxx>
+#include <SelectMgr_EntityOwner.hxx>
+#include <SelectMgr_SelectableObject.hxx>
+#include <SelectMgr_Selection.hxx>
+#include <SelectMgr_SelectionManager.hxx>
+#include <SelectMgr_ListOfFilter.hxx>
+#include <SelectMgr_Filter.hxx>
+#include <StdSelect_EdgeFilter.hxx>
+#include <StdSelect_ShapeTypeFilter.hxx>
+#include <Standard_Boolean.hxx>
+#include <Standard_CString.hxx>
+#include <Standard_ErrorHandler.hxx>
+#include <Standard_Integer.hxx>
+#include <Standard_IStream.hxx>
+#include <Standard_Macro.hxx>
+#include <Standard_NotImplemented.hxx>
+#include <Standard_OStream.hxx>
+#include <Standard_Real.hxx>
+#include <StdPrs_Curve.hxx>
+#include <StdPrs_Point.hxx>
+#include <StdPrs_PoleCurve.hxx>
+#include <TCollection_AsciiString.hxx>
+#include <TColgp_Array1OfPnt2d.hxx>
+#include <TColgp_HArray1OfPnt2d.hxx>
+#include <TCollection_AsciiString.hxx>
+#include <TColStd_HSequenceOfTransient.hxx>
+#include <TColStd_MapIteratorOfMapOfTransient.hxx>
+#include <TColStd_MapOfTransient.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TopoDS.hxx>
+#include <TopoDS_Compound.hxx>
+#include <TopoDS_Shape.hxx>
+#include <TopoDS_Solid.hxx>
+#include <TopoDS_Vertex.hxx>
+#include <TopExp.hxx>
+#include <TopTools_HSequenceOfShape.hxx>
+#include <UnitsAPI.hxx>
 #include <V3d_View.hxx>
-
+#include <V3d_Viewer.hxx>
+#include <WNT_Window.hxx>
+#include <Prs3d_PointAspect.hxx>
+#include <AIS_Point.hxx>
+#include <BRep_Tool.hxx>
+#include <BRepAlgoAPI_Fuse.hxx>
+#include <BRepBuilderAPI_MakeEdge.hxx>
+#include <BRepBuilderAPI_MakeFace.hxx>
+#include <BRepBuilderAPI_MakeWire.hxx>
+#include <BRepBuilderAPI_MakeVertex.hxx>
+#include <BRepBuilderAPI_Transform.hxx>
+#include <BRepPrimAPI_MakeCone.hxx>
+#include <BRepPrimAPI_MakeRevol.hxx>
+#include <BRepFilletAPI_MakeFillet.hxx>
+#include <BRepBuilderAPI_Copy.hxx>
+#include <BRepBuilderAPI_MakePolygon.hxx>
+#include <BRepLib.hxx>
+#include <BRepOffsetAPI_MakeThickSolid.hxx>
+#include <BRepOffsetAPI_ThruSections.hxx>
+#include <BRepPrimAPI_MakeCylinder.hxx>
+#include <BRepPrimAPI_MakePrism.hxx>
+#include <BRepPrimAPI_MakeTorus.hxx>
+#include <BRepAlgoAPI_Section.hxx>
+#include <BRepPrimAPI_MakeSphere.hxx>
+#include <BRepFeat_SplitShape.hxx>
+#include <TColgp_HArray1OfPnt.hxx>
+#include <GeomAPI_Interpolate.hxx>
+#include <GC_MakeArcOfCircle.hxx>
+#include <GC_MakeSegment.hxx>
+#include <GC_MakeCircle.hxx>
+#include <GCE2d_MakeSegment.hxx>
+#include <gp.hxx>
+#include <gp_Ax1.hxx>
+#include <gp_Ax2.hxx>
+#include <gp_Ax2d.hxx>
+#include <gp_Dir.hxx>
+#include <gp_Dir2d.hxx>
+#include <gp_Pnt.hxx>
+#include <gp_Pnt2d.hxx>
+#include <gp_Trsf.hxx>
+#include <gp_Vec.hxx>
+#include <Geom_CylindricalSurface.hxx>
+#include <Geom_Plane.hxx>
+#include <Geom_Surface.hxx>
+#include <Geom_TrimmedCurve.hxx>
+#include <Geom2d_Ellipse.hxx>
+#include <Geom2d_TrimmedCurve.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TopoDS.hxx>
+#include <TopoDS_Edge.hxx>
+#include <TopoDS_Face.hxx>
+#include <TopoDS_Wire.hxx>
+#include <TopoDS_Shape.hxx>
+#include <TopoDS_Compound.hxx>
+#include <GCPnts_AbscissaPoint.hxx>
+#include <BRepAdaptor_Curve.hxx>
+#include <GeomLib.hxx>
+#include <GeomConvert_CompCurveToBSplineCurve.hxx>
+#include <TopTools_ListOfShape.hxx>
+#include <TopTools_ListIteratorOfListOfShape.hxx>
+#include <TopTools_DataMapOfShapeInteger.hxx>
+#include <TopTools_DataMapOfShapeReal.hxx>
+#include <TopTools_IndexedDataMapOfShapeAddress.hxx>
+#include <V3d_PositionalLight.hxx>
+#include <V3d_DirectionalLight.hxx>
+#include <V3d_AmbientLight.hxx>
+#include <IGESControl_Controller.hxx>
+#include <IGESControl_Writer.hxx>
+#include <Interface_Static.hxx>
+#include <OpenGl_GraphicDriver.hxx>
+#include <Graphic3d_GraphicDriver.hxx>
+#include <Xw_Window.hxx>
+#include <V3d_View.hxx>
+#include <Graphic3d_GraphicDriver.hxx>
 #include <Aspect_Handle.hxx>
 #include <Aspect_DisplayConnection.hxx>
-//
-#include <QToolBar>
-#include <QTreeView>
-#include <QMessageBox>
-#include <QDockWidget>
+#include <OpenGl_GraphicDriver.hxx>
+#include <WNT_Window.hxx>
+#include <AIS_InteractiveContext.hxx>
+#include <TopoDS_Shape.hxx>
+#include <AIS_Shape.hxx>
+#include <BRepAlgo.hxx>
+#include <BRepAlgo_Common.hxx>
+#include <BRepAlgoAPI_Common.hxx>
+#include <BRepAlgoAPI_Algo.hxx>
+#include <BRep_Tool.hxx>
 
-#include <gp_Circ.hxx>
-#include <gp_Elips.hxx>
-#include <gp_Pln.hxx>
+#include <BRepAlgoAPI_Fuse.hxx>
 
-#include <gp_Lin2d.hxx>
+#include <BRepBuilderAPI_MakeEdge.hxx>
+#include <BRepBuilderAPI_MakeFace.hxx>
+#include <BRepBuilderAPI_MakeWire.hxx>
+#include <BRepBuilderAPI_Transform.hxx>
 
-#include <Geom_ConicalSurface.hxx>
-#include <Geom_ToroidalSurface.hxx>
-#include <Geom_CylindricalSurface.hxx>
-
-#include <GCE2d_MakeSegment.hxx>
-
-#include <TopoDS.hxx>
-#include <TopExp.hxx>
-#include <TopExp_Explorer.hxx>
-#include <TColgp_Array1OfPnt2d.hxx>
+#include <BRepFilletAPI_MakeFillet.hxx>
 
 #include <BRepLib.hxx>
 
-#include <BRepBuilderAPI_MakeVertex.hxx>
-#include <BRepBuilderAPI_MakeEdge.hxx>
-#include <BRepBuilderAPI_MakeWire.hxx>
-#include <BRepBuilderAPI_MakeFace.hxx>
-#include <BRepBuilderAPI_Transform.hxx>
-#include <BRepBuilderAPI_MakePolygon.hxx>
-
-#include <BRepPrimAPI_MakeBox.hxx>
-#include <BRepPrimAPI_MakeCone.hxx>
-#include <BRepPrimAPI_MakeSphere.hxx>
-#include <BRepPrimAPI_MakeCylinder.hxx>
-#include <BRepPrimAPI_MakeTorus.hxx>
-#include <BRepPrimAPI_MakePrism.hxx>
-#include <BRepPrimAPI_MakeRevol.hxx>
-
-#include <BRepFilletAPI_MakeFillet.hxx>
-#include <BRepFilletAPI_MakeChamfer.hxx>
-
-#include <BRepOffsetAPI_MakePipe.hxx>
+#include <BRepOffsetAPI_MakeThickSolid.hxx>
 #include <BRepOffsetAPI_ThruSections.hxx>
 
-#include <BRepAlgoAPI_Cut.hxx>
-#include <BRepAlgoAPI_Fuse.hxx>
-#include <BRepAlgoAPI_Common.hxx>
+#include <BRepPrimAPI_MakeCylinder.hxx>
+#include <BRepPrimAPI_MakePrism.hxx>
 
-#include <AIS_Shape.hxx>
+#include <GC_MakeArcOfCircle.hxx>
+#include <GC_MakeSegment.hxx>
+
+#include <GCE2d_MakeSegment.hxx>
+
+#include <gp.hxx>
+#include <gp_Ax1.hxx>
+#include <gp_Ax2.hxx>
+#include <gp_Ax2d.hxx>
+#include <gp_Dir.hxx>
+#include <gp_Dir2d.hxx>
+#include <gp_Pnt.hxx>
+#include <gp_Pnt2d.hxx>
+#include <gp_Trsf.hxx>
+#include <gp_Vec.hxx>
+
+#include <Geom_CylindricalSurface.hxx>
+#include <Geom_Plane.hxx>
+#include <Geom_Surface.hxx>
+#include <Geom_TrimmedCurve.hxx>
+
+#include <Geom2d_Ellipse.hxx>
+#include <Geom2d_TrimmedCurve.hxx>
+
+#include <TopExp_Explorer.hxx>
+
+#include <TopoDS.hxx>
+#include <TopoDS_Edge.hxx>
+#include <TopoDS_Face.hxx>
+#include <TopoDS_Wire.hxx>
+#include <TopoDS_Shape.hxx>
+#include <TopoDS_Compound.hxx>
+
+#include <TopTools_ListOfShape.hxx>
+#include <ShapeAnalysis_Surface.hxx>
+#include <BRepClass_FaceClassifier.hxx>
+#include <V3d_Coordinate.hxx>
+#include <BRepOffsetAPI_MakePipeShell.hxx>
+#include <BRepAlgoAPI_Cut.hxx>
+#include <StdSelect_FaceFilter.hxx>
+#include <Standard_PrimitiveTypes.hxx>
+#include <GProp_GProps.hxx>
+#include <BRepGProp.hxx>
+#include <Law_Linear.hxx>
+ #include <GeomToStep_MakeCartesianPoint.hxx>
+ #include <GeomToStep_MakePolyline.hxx>
+ #include <gp_Pnt.hxx>
+ #include <gp_Pnt2d.hxx>
+ #include <StdFail_NotDone.hxx>
+ #include <StepGeom_HArray1OfCartesianPoint.hxx>
+ #include <StepGeom_Polyline.hxx>
+ #include <TColgp_Array1OfPnt.hxx>
+ #include <TColgp_Array1OfPnt2d.hxx>
+ #include <TCollection_HAsciiString.hxx>
+ #include <Geom_BezierCurve.hxx>
+ #include <TColgp_Array1OfPnt.hxx>
+ #include <GeomFill_Pipe.hxx>
+ #include <Geom_Surface.hxx>
+ #include <TColgp_Array1OfPnt2d.hxx>
+ #include <Geom2d_BezierCurve.hxx>
+ #include <TColgp_Array2OfPnt.hxx>
+ #include <Geom_BezierSurface.hxx>
+ #include <Geom2dAdaptor_HCurve.hxx>
+ #include <GeomAdaptor_HSurface.hxx>
+ #include <Approx_CurveOnSurface.hxx>
+ #include <TopoDS_Wire.hxx>
+ #include <TopoDS_Edge.hxx>
+ #include <BRepBuilderAPI_MakeEdge.hxx>
+ #include <BRepBuilderAPI_MakeWire.hxx>
+ #include <BRepOffsetAPI_MakePipe.hxx>
+ #include <BRepOffsetAPI_MakePipeShell.hxx>
+ #include <Law_Interpol.hxx>
+ #include <BRepBuilderAPI_TransitionMode.hxx>
+ #include <TColStd_Array1OfReal.hxx>
+ #include <TColStd_Array1OfInteger.hxx>
+ #include <Geom_BSplineCurve.hxx>
+ #include <BRepBuilderAPI_MakePolygon.hxx>
+#include <math.hxx>
 //
 
 #ifdef WNT
@@ -340,6 +554,12 @@ void MyGLView::onRButtonUp( const int /*theFlags*/, const QPoint thePoint )
 
 void MyGLView::onMouseMove( const int theFlags, const QPoint thePoint )
 {
+
+    gp_Pnt WP = ConvertClickToPoint(thePoint.x(),thePoint.y(),myView);
+    Bar->showMessage(QString("X : %1 - Y: %2 - Z: %3").arg(WP.X()).arg(WP.Y()).arg(WP.Z()));
+
+    analyse_point(WP);
+
     // Draw the rubber band.
     if (theFlags & Qt::LeftButton)
     {
@@ -468,10 +688,82 @@ void MyGLView::panByMiddleButton( const QPoint& thePoint )
 
 void MyGLView::drawLine()
 {
-    TopoDS_Shape aTopoBox = BRepPrimAPI_MakeBox(3.0, 4.0, 5.0).Shape();
-    Handle(AIS_Shape) anAisBox = new AIS_Shape(aTopoBox);
+    gp_Pnt point1(0,0,0);
+    gp_Pnt point2(0,0,100);
+    gp_Pnt point3(100,100,100);
+    gp_Pnt point4(200,200,200);
 
-    anAisBox->SetColor(Quantity_NOC_AZURE);
 
-    myContext->Display(anAisBox, Standard_True);
+    //make a vertex from the point
+    //make one more point
+
+    Handle(Geom_TrimmedCurve) aSegment1 = GC_MakeSegment(point1, point2);
+    Handle(Geom_TrimmedCurve) aSegment2 = GC_MakeSegment(point3, point4);
+
+    TopoDS_Edge anEdge1 = BRepBuilderAPI_MakeEdge(aSegment1);
+    TopoDS_Edge anEdge2 = BRepBuilderAPI_MakeEdge(aSegment2);
+
+    TopoDS_Wire threadingWire1 = BRepBuilderAPI_MakeWire(anEdge1, anEdge1);
+    TopoDS_Wire threadingWire2 = BRepBuilderAPI_MakeWire(anEdge2, anEdge2);
+
+    BRepBuilderAPI_MakeWire mkWire;
+    BRepBuilderAPI_MakeWire mkWire1;
+
+    mkWire.Add(threadingWire1);
+    mkWire1.Add(threadingWire2);
+
+
+
+
+    //display the vertex
+    Handle(AIS_Shape) aisBody1 = new AIS_Shape(mkWire);
+    Handle(AIS_Shape) aisBody2 = new AIS_Shape(mkWire1);
+
+    myContext->SetColor(aisBody1,Quantity_NOC_LAVENDER,Standard_False);
+    myContext->SetMaterial(aisBody1,Graphic3d_NOM_PLASTIC,Standard_False);
+    myContext->Display(aisBody1,Standard_False);
+    myContext->Display(aisBody2,Standard_False);
+
 }
+
+void MyGLView::drawCircle(gp_Pnt a)
+{
+
+    gp_Dir dir(1,0,0); // you can change this
+
+    gp_Circ circle(gp_Ax2( a, dir),5);
+    BRepBuilderAPI_MakeEdge makeEdge(circle);
+    Handle(AIS_Shape) shape = new AIS_Shape(TopoDS_Edge());
+    shape ->Set(makeEdge.Edge());
+    myContext->Display(shape , 1);
+}
+
+BOOL MyGLView::analyse_point(gp_Pnt p)
+{
+ TopExp_Explorer ex;
+    AIS_ListOfInteractive objList;
+    myContext->DisplayedObjects(objList);
+    AIS_ListIteratorOfListOfInteractive iter;
+    for(iter.Initialize(objList); iter.More(); iter.Next())
+    {
+    Handle(AIS_InteractiveObject) aisShp = iter.Value();
+    if(aisShp->IsKind("AIS_Shape"))
+    {
+    TopoDS_Shape myShape = Handle(AIS_Shape)::DownCast(aisShp)->Shape();
+    //now you that you got your shape, do something with it
+    if (myShape.ShapeType() == TopAbs_WIRE)
+    for (ex.Init(myShape, TopAbs_VERTEX); ex.More(); ex.Next())
+    {
+    TopoDS_Vertex vertex = TopoDS::Vertex(ex.Current());
+    gp_Pnt pt = BRep_Tool::Pnt(vertex);
+
+    if (is_point_near(p,pt,1))
+    {
+            drawCircle(pt);
+            return true;
+    }
+    }
+    }
+};
+    return false;
+};

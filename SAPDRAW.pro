@@ -39,7 +39,8 @@ SOURCES += \
 
 HEADERS += \
         mainwindow.h \
-    view.h
+    view.h \
+    occ_helper_functions.h
 
 FORMS += \
         mainwindow.ui

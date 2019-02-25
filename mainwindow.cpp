@@ -8,7 +8,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     myOCCView = new MyGLView(this);
     setCentralWidget(myOCCView);
-
+   myOCCView->ui = ui;
+   myOCCView->Bar = ui->statusBar;
 }
 
 MainWindow::~MainWindow()
