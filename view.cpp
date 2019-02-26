@@ -450,6 +450,12 @@ void MyGLView::mouseReleaseEvent( QMouseEvent* theEvent )
 
 void MyGLView::mouseMoveEvent( QMouseEvent * theEvent )
 {
+  //  gp_Pnt WP = ConvertClickToPoint(theEvent->pos().x(),theEvent->pos().y(),myView);
+    gp_Pnt WP = ConvertClickToPoint(theEvent->pos().x(),theEvent->pos().y(),myView);
+    analyse_point(WP);
+
+
+    Bar->showMessage(QString("X : %1 - Y: %2 - Z: %3").arg(WP.X()).arg(WP.Y()).arg(WP.Z()));
     onMouseMove(theEvent->buttons(), theEvent->pos());
 }
 
@@ -555,10 +561,8 @@ void MyGLView::onRButtonUp( const int /*theFlags*/, const QPoint thePoint )
 void MyGLView::onMouseMove( const int theFlags, const QPoint thePoint )
 {
 
-    gp_Pnt WP = ConvertClickToPoint(thePoint.x(),thePoint.y(),myView);
-    Bar->showMessage(QString("X : %1 - Y: %2 - Z: %3").arg(WP.X()).arg(WP.Y()).arg(WP.Z()));
 
-    analyse_point(WP);
+
 
     // Draw the rubber band.
     if (theFlags & Qt::LeftButton)
@@ -721,9 +725,9 @@ void MyGLView::drawLine()
 
     myContext->SetColor(aisBody1,Quantity_NOC_LAVENDER,Standard_False);
     myContext->SetMaterial(aisBody1,Graphic3d_NOM_PLASTIC,Standard_False);
-    myContext->Display(aisBody1,Standard_False);
-    myContext->Display(aisBody2,Standard_False);
-
+    myContext->Display(aisBody1,Standard_True);
+    myContext->Display(aisBody2,Standard_True);
+     points = extract_points(myContext);
 }
 
 void MyGLView::drawCircle(gp_Pnt a)
@@ -740,30 +744,13 @@ void MyGLView::drawCircle(gp_Pnt a)
 
 BOOL MyGLView::analyse_point(gp_Pnt p)
 {
- TopExp_Explorer ex;
-    AIS_ListOfInteractive objList;
-    myContext->DisplayedObjects(objList);
-    AIS_ListIteratorOfListOfInteractive iter;
-    for(iter.Initialize(objList); iter.More(); iter.Next())
-    {
-    Handle(AIS_InteractiveObject) aisShp = iter.Value();
-    if(aisShp->IsKind("AIS_Shape"))
-    {
-    TopoDS_Shape myShape = Handle(AIS_Shape)::DownCast(aisShp)->Shape();
-    //now you that you got your shape, do something with it
-    if (myShape.ShapeType() == TopAbs_WIRE)
-    for (ex.Init(myShape, TopAbs_VERTEX); ex.More(); ex.Next())
-    {
-    TopoDS_Vertex vertex = TopoDS::Vertex(ex.Current());
-    gp_Pnt pt = BRep_Tool::Pnt(vertex);
-
-    if (is_point_near(p,pt,1))
-    {
-            drawCircle(pt);
-            return true;
-    }
-    }
-    }
-};
-    return false;
+ if (points.size() > 0)
+  for (unsigned long i=0;i<points.size();i++)
+  {
+      if (points[i].IsEqual(p,10))
+      {
+          drawCircle(points[i]);
+      }
+  }
+  return false;
 };

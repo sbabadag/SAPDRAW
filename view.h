@@ -4,6 +4,9 @@
 #include <QMainWindow>
 
 #include <AIS_InteractiveContext.hxx>
+#include <vector>
+
+using namespace std;
 
 class QMenu;
 class QRubberBand;
@@ -30,6 +33,7 @@ public:
     MyGLView(QWidget* parent);
     void *ui;
     QStatusBar *Bar;
+    vector<gp_Pnt> points;
 
 
     const Handle(AIS_InteractiveContext)& getContext() const;
