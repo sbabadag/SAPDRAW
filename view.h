@@ -34,11 +34,13 @@ public:
     void *ui;
     QStatusBar *Bar;
     vector<gp_Pnt> points;
+    Handle(V3d_View) myView;
+
 
 
     const Handle(AIS_InteractiveContext)& getContext() const;
 
-    BOOL analyse_point(gp_Pnt p);
+    BOOL analyse_point(QPoint a);
     void drawCircle(gp_Pnt a);
 signals:
     void selectionChanged(void);
@@ -96,7 +98,6 @@ private:
     Handle(V3d_Viewer) myViewer;
 
     //! the occ view.
-    Handle(V3d_View) myView;
 
     //! the occ context.
     Handle(AIS_InteractiveContext) myContext;

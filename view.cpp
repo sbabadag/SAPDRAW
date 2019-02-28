@@ -318,6 +318,7 @@ MyGLView::MyGLView(QWidget* parent )
     // Enable the mouse tracking, by default the mouse tracking is disabled.
     setMouseTracking( true );
 
+
 }
 
 void MyGLView::init()
@@ -364,6 +365,7 @@ void MyGLView::init()
     myView->TriedronDisplay(Aspect_TOTP_LEFT_LOWER, Quantity_NOC_GOLD, 0.08, V3d_ZBUFFER);
 
     myContext->SetDisplayMode(AIS_Shaded, Standard_True);
+    myView->SetBackgroundColor(Quantity_NOC_GRAY20);
 }
 
 const Handle(AIS_InteractiveContext)& MyGLView::getContext() const
@@ -450,12 +452,10 @@ void MyGLView::mouseReleaseEvent( QMouseEvent* theEvent )
 
 void MyGLView::mouseMoveEvent( QMouseEvent * theEvent )
 {
-  //  gp_Pnt WP = ConvertClickToPoint(theEvent->pos().x(),theEvent->pos().y(),myView);
-    gp_Pnt WP = ConvertClickToPoint(theEvent->pos().x(),theEvent->pos().y(),myView);
-    analyse_point(WP);
+
+    analyse_point(theEvent->pos());
 
 
-    Bar->showMessage(QString("X : %1 - Y: %2 - Z: %3").arg(WP.X()).arg(WP.Y()).arg(WP.Z()));
     onMouseMove(theEvent->buttons(), theEvent->pos());
 }
 
@@ -693,9 +693,9 @@ void MyGLView::panByMiddleButton( const QPoint& thePoint )
 void MyGLView::drawLine()
 {
     gp_Pnt point1(0,0,0);
-    gp_Pnt point2(0,0,100);
-    gp_Pnt point3(100,100,100);
-    gp_Pnt point4(200,200,200);
+    gp_Pnt point2(0,100,0);
+    gp_Pnt point3(100,100,0);
+    gp_Pnt point4(200,400,0);
 
 
     //make a vertex from the point
@@ -725,32 +725,43 @@ void MyGLView::drawLine()
 
     myContext->SetColor(aisBody1,Quantity_NOC_LAVENDER,Standard_False);
     myContext->SetMaterial(aisBody1,Graphic3d_NOM_PLASTIC,Standard_False);
-    myContext->Display(aisBody1,Standard_True);
-    myContext->Display(aisBody2,Standard_True);
+    myContext->SetColor(aisBody2,Quantity_NOC_LAVENDER,Standard_False);
+    myContext->SetMaterial(aisBody2,Graphic3d_NOM_PLASTIC,Standard_False);
+
+    myContext->Display(aisBody1,Standard_False);
+    myContext->Display(aisBody2,Standard_False);
      points = extract_points(myContext);
+     myView->Redraw();
 }
 
 void MyGLView::drawCircle(gp_Pnt a)
 {
+    TopoDS_Vertex V1 = BRepBuilderAPI_MakeVertex( a );
 
-    gp_Dir dir(1,0,0); // you can change this
+    // Create the AIS_Shape
+    Handle(AIS_Shape) aShape = new AIS_Shape(V1);
 
-    gp_Circ circle(gp_Ax2( a, dir),5);
-    BRepBuilderAPI_MakeEdge makeEdge(circle);
-    Handle(AIS_Shape) shape = new AIS_Shape(TopoDS_Edge());
-    shape ->Set(makeEdge.Edge());
-    myContext->Display(shape , 1);
+    // Set the vertex shape, color, and size
+    Quantity_Color color(Quantity_NOC_YELLOW);
+    Handle_Prs3d_PointAspect myPointAspect=new Prs3d_PointAspect(Aspect_TOM_O,color,2);
+    aShape->Attributes()->SetPointAspect(myPointAspect);
+    myContext->Display(aShape,Standard_False);
+
 }
 
-BOOL MyGLView::analyse_point(gp_Pnt p)
+BOOL MyGLView::analyse_point(QPoint a)
 {
+    gp_Pnt WP = convertToPlane(a.x(),a.y(),myView);
+    Bar->showMessage(QString("X : %1 - Y: %2 - Z: %3").arg(WP.X()).arg(WP.Y()).arg(WP.Z()));
+
  if (points.size() > 0)
   for (unsigned long i=0;i<points.size();i++)
   {
-      if (points[i].IsEqual(p,10))
+  if( points[i].Distance(WP)<10)
       {
           drawCircle(points[i]);
       }
   }
   return false;
 };
+

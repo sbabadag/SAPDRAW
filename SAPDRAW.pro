@@ -115,3 +115,6 @@ LIBS +=         \
   -L"C:/OpenCASCADE-7.3.0-vc14-64/opencascade-7.3.0/win64/vc14/lib/"  -lTKXSBase                  \
   -L"C:/OpenCASCADE-7.3.0-vc14-64/opencascade-7.3.0/win64/vc14/lib/"  -lTKXSDRAW                  \
 
+RESOURCES += \
+    resources.qrc
+

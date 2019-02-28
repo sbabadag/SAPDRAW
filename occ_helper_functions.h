@@ -269,8 +269,70 @@
 #include <vector>
 #include <BRepTools_WireExplorer.hxx>
 #include <IntAna_IntConicQuad.hxx>
+#include <ProjLib_ProjectOnPlane.hxx>
+#include <Geom_Line.hxx>
 
 using namespace std;
+
+gp_Pnt convertToPlane(const Standard_Integer Xs, const Standard_Integer Ys, Handle(V3d_View) myView)
+{
+    gp_Pnt p;
+    Standard_Real Xv, Yv, Zv;
+    Standard_Real Vx, Vy, Vz;
+    gp_Pln aPlane(myView->Viewer()->PrivilegedPlane());
+
+#ifdef OCC_PATCHED
+    myView->Convert( Xs, Ys, Xv, Yv, Zv );
+#else
+    // The + 1 overcomes a fault in OCC, in "OpenGl_togl_unproject_raster.c",
+    // which transforms the Y axis ordinate. The function uses the height of the
+    // window, not the Y maximum which is (height - 1).
+    myView->Convert( Xs, Ys + 1, Xv, Yv, Zv );
+#endif
+
+    myView->Proj( Vx, Vy, Vz );
+    gp_Lin aLine(gp_Pnt(Xv, Yv, Zv), gp_Dir(Vx, Vy, Vz));
+    IntAna_IntConicQuad theIntersection( aLine, aPlane, Precision::Angular() );
+    if (theIntersection.IsDone())
+    {
+        if (!theIntersection.IsParallel())
+        {
+            if (theIntersection.NbPoints() > 0)
+            {
+                gp_Pnt theSolution(theIntersection.Point(1));
+
+                return theSolution;
+            }
+        }
+    }
+}
+
+gp_Pnt CCtP(int x, int y, Handle(V3d_View) aView)
+{
+Standard_Real aVx,aVy,aVz,aPx,aPy,aPz;
+aView->Convert(x, y, aVx, aVy, aVz);
+gp_Pnt a(aVx,aVy,aVz);
+return a;
+
+}
+
+gp_Pnt to3DPoint(Standard_Real x, Standard_Real y, Handle(V3d_View) aView)
+{
+// Make a plane perpendicular to the projection orientation.
+    Standard_Real x_ori, y_ori, z_ori;
+    aView->Proj(x_ori, y_ori, z_ori);
+    gp_Dir proj_orientation(x_ori, y_ori, z_ori);
+gp_Pln view_plane = gp_Pln(gp_Pnt (0, 0, 0), proj_orientation);
+// Convert the 2d point into a 3d point.
+Standard_Real xp, yp, zp;
+aView->Convert(x, y, xp, yp, zp);
+gp_Pnt converted_pnt(xp, yp, zp);
+// Project the converted point in the plane.
+gp_Pnt2d projected_pnt = ProjLib::Project(view_plane, converted_pnt);
+// Get a 3d point from this 2d point.
+gp_Pnt p3D = ElSLib::Value (projected_pnt.X(), projected_pnt.Y(), view_plane);
+return p3D;
+}
 
 
 gp_Pnt ConvertClickToPoint(Standard_Real x, Standard_Real y, Handle(V3d_View) aView)
@@ -287,7 +349,7 @@ gp_Pnt ConvertClickToPoint(Standard_Real x, Standard_Real y, Handle(V3d_View) aV
 
     gp_Pln PlaneOfTheView = gp_Pln(AtPoint,EyeDir);
     Standard_Real X,Y,Z;
-    aView->Convert(static_cast<Standard_Integer>(x),static_cast<Standard_Integer>(y),X,Y,Z);
+    aView->Convert(int(x),int(y),X,Y,Z);
     gp_Pnt ConvertedPoint(X,Y,Z);
     gp_Pnt2d ConvertedPointOnPlane = ProjLib::Project(PlaneOfTheView,ConvertedPoint);
 

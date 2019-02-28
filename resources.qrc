@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/rec">
+        <file>images/icons8-cube-16.png</file>
+        <file>images/icons8-expand-16.png</file>
+        <file>images/icons8-front-view-16.png</file>
+        <file>images/icons8-orthogonal-view-16.png</file>
+        <file>images/icons8-preview-pane-16.png</file>
+        <file>images/icons8-select-all-16.png</file>
+        <file>images/icons8-street-view-16.png</file>
+        <file>images/icons8-top-view-16.png</file>
+    </qresource>
+</RCC>
