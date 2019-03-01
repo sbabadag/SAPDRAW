@@ -36,7 +36,23 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::on_actionLine_triggered()
 {
-    myOCCView->drawLine();
+    //myOCCView->drawLine();
+    gp_Pnt pt1(0,0,0);
+    gp_Pnt pt2(0,0,10000);
+    gp_Pnt pt3(10000,0,12000);
+    gp_Pnt pt4(20000,0,10000);
+    gp_Pnt pt5(20000,0,0);
+
+    vector<gp_Pnt> p;
+    p.push_back(pt1);
+    p.push_back(pt2);
+    p.push_back(pt3);
+    p.push_back(pt4);
+    p.push_back(pt5);
+
+
+
+    myOCCView->drawBuilding(p,6000,10);
 }
 
 void MainWindow::on_actionTop_triggered()

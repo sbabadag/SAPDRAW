@@ -42,8 +42,9 @@ public:
 
     BOOL analyse_point(QPoint a);
     void drawCircle(gp_Pnt a);
-signals:
-    void selectionChanged(void);
+    vector<TopoDS_Shape*> drawBuilding(vector<gp_Pnt> fpoints,Standard_Real YLength,int YQuantity);
+    void handleSelectionChanged();
+    gp_Pnt selectionChanged(void);
 
 public slots:
     //! operations for the view.
@@ -52,7 +53,7 @@ public slots:
     void reset(void);
     void zoom(void);
     void rotate(void);
-    void drawLine();
+    void drawLine(gp_Pnt pt1,gp_Pnt pt2);
 
 
 
@@ -116,6 +117,9 @@ private:
 
     //! rubber rectangle for the mouse selection.
     QRubberBand* myRectBand;
+    int SelNum;
+    gp_Pnt firstPoint ;
+    gp_Pnt lastPoint;
 
 
 };

@@ -5,6 +5,7 @@
 #include "mainwindow.h"
 #include <QMainWindow>
 #include <QStatusBar>
+#include <gp_Trsf.hxx>
 
 
 #include <QMenu>
@@ -276,6 +277,21 @@
  #include <Geom_BSplineCurve.hxx>
  #include <BRepBuilderAPI_MakePolygon.hxx>
 #include <math.hxx>
+#include <BRepBuilderAPI_Copy.hxx>
+#include <V3d_Viewer.hxx>
+#include <QMenu>
+#include <QMouseEvent>
+#include <QRubberBand>
+#include <QStyleFactory>
+
+// occ header files.
+#include <V3d_Viewer.hxx>
+//#include <WNT_Window.hxx>
+#include <Aspect_Handle.hxx>
+
+#include <Graphic3d_GraphicDriver.hxx>
+#include <Xw_Window.hxx>
+
 //
 
 #ifdef WNT
@@ -317,7 +333,7 @@ MyGLView::MyGLView(QWidget* parent )
 
     // Enable the mouse tracking, by default the mouse tracking is disabled.
     setMouseTracking( true );
-
+    SelNum =0;
 
 }
 
@@ -366,6 +382,14 @@ void MyGLView::init()
 
     myContext->SetDisplayMode(AIS_Shaded, Standard_True);
     myView->SetBackgroundColor(Quantity_NOC_GRAY20);
+
+    myContext->SetDisplayMode(AIS_Shaded,true);
+
+    myContext->CloseAllContexts(true);
+    myContext->OpenLocalContext();
+    myContext->ActivateStandardMode(TopAbs_VERTEX);
+    myView->ZFitAll();
+    myView->DepthFitAll();
 }
 
 const Handle(AIS_InteractiveContext)& MyGLView::getContext() const
@@ -453,7 +477,9 @@ void MyGLView::mouseReleaseEvent( QMouseEvent* theEvent )
 void MyGLView::mouseMoveEvent( QMouseEvent * theEvent )
 {
 
-    analyse_point(theEvent->pos());
+ //   analyse_point(theEvent->pos());
+    gp_Pnt WP = selectionChanged();
+    Bar->showMessage(QString("X : %1 - Y: %2 - Z: %3").arg(WP.X()).arg(WP.Y()).arg(WP.Z()));
 
 
     onMouseMove(theEvent->buttons(), theEvent->pos());
@@ -690,47 +716,98 @@ void MyGLView::panByMiddleButton( const QPoint& thePoint )
     myView->Pan(aCenterX - thePoint.x(), thePoint.y() - aCenterY);
 }
 
-void MyGLView::drawLine()
+vector<TopoDS_Shape*> MyGLView::drawBuilding(vector<gp_Pnt> fpoints,Standard_Real YLength,int YQuantity)
 {
-    gp_Pnt point1(0,0,0);
-    gp_Pnt point2(0,100,0);
-    gp_Pnt point3(100,100,0);
-    gp_Pnt point4(200,400,0);
+    vector<TopoDS_Shape*> res;
+
+
+
+for (int j=0;j<YQuantity;j++)
+ for (int i=0; i<fpoints.size()-1;i++)
+ {
+     for (int z=0; z<fpoints.size();z++)
+     {
+         fpoints[z].SetY(YLength*j);
+     }
+     Handle(Geom_TrimmedCurve) aSegment = GC_MakeSegment(fpoints[i],fpoints[i+1]);
+     TopoDS_Edge anEdge = BRepBuilderAPI_MakeEdge(aSegment);
+     TopoDS_Wire threadingWire =  BRepBuilderAPI_MakeWire(anEdge, anEdge);
+     TopoDS_Shape *aisBody = new TopoDS_Shape(threadingWire);
+
+     res.push_back(aisBody);
+ }
+
+     for (int i=0;i<res.size();i++)
+     {
+         Handle(AIS_Shape) aisBody1 = new AIS_Shape(*res[i]);
+
+         myContext->Display(aisBody1,Standard_False);
+     }
+
+     points = extract_points(myContext);
+
+     return res;
+}
+
+gp_Pnt MyGLView::selectionChanged()
+{
+    gp_Pnt myPoint;
+//    myContext->CloseAllContexts(true);
+//    myContext->OpenLocalContext();
+//    myContext->ActivateStandardMode(TopAbs_VERTEX);
+    myContext->InitSelected();
+    while(myContext->MoreSelected())
+    {
+    if(myContext->HasSelectedShape())
+    {
+
+    TopoDS_Shape myVertex = myContext->SelectedShape();
+    //here i added a code to use the face i selected but
+    //nothing worked.
+    TopoDS_Vertex & rvertex = TopoDS::Vertex(myVertex);
+    myPoint =  BRep_Tool::Pnt(rvertex);
+    SelNum ++;
+    if (SelNum == 1) {firstPoint = myPoint;};
+
+    }
+    else
+    {
+//    TopoDS_Shape vertex = Handle(AIS_Shape)::DownCast( myContext->SelectedInteractive() )->Shape();
+    //here i did the same..nothing worked
+//    TopoDS_Vertex & rvertex = TopoDS::Vertex(vertex);
+//    myPoint =  BRep_Tool::Pnt(rvertex);
+    }
+
+    myContext->NextSelected();
+    }
+    if (SelNum == 2) {SelNum = 0;lastPoint = myPoint;drawLine(firstPoint,lastPoint);};
+    myContext->ClearSelected(true);
+
+ return myPoint;
+}
+
+void MyGLView::drawLine(gp_Pnt pt1,gp_Pnt pt2)
+{
+
 
 
     //make a vertex from the point
     //make one more point
 
-    Handle(Geom_TrimmedCurve) aSegment1 = GC_MakeSegment(point1, point2);
-    Handle(Geom_TrimmedCurve) aSegment2 = GC_MakeSegment(point3, point4);
+    Handle(Geom_TrimmedCurve) aSegment1 = GC_MakeSegment(pt1, pt2);
 
     TopoDS_Edge anEdge1 = BRepBuilderAPI_MakeEdge(aSegment1);
-    TopoDS_Edge anEdge2 = BRepBuilderAPI_MakeEdge(aSegment2);
 
     TopoDS_Wire threadingWire1 = BRepBuilderAPI_MakeWire(anEdge1, anEdge1);
-    TopoDS_Wire threadingWire2 = BRepBuilderAPI_MakeWire(anEdge2, anEdge2);
-
-    BRepBuilderAPI_MakeWire mkWire;
-    BRepBuilderAPI_MakeWire mkWire1;
-
-    mkWire.Add(threadingWire1);
-    mkWire1.Add(threadingWire2);
-
-
 
 
     //display the vertex
-    Handle(AIS_Shape) aisBody1 = new AIS_Shape(mkWire);
-    Handle(AIS_Shape) aisBody2 = new AIS_Shape(mkWire1);
+    Handle(AIS_Shape) aisBody1 = new AIS_Shape(threadingWire1);
 
     myContext->SetColor(aisBody1,Quantity_NOC_LAVENDER,Standard_False);
     myContext->SetMaterial(aisBody1,Graphic3d_NOM_PLASTIC,Standard_False);
-    myContext->SetColor(aisBody2,Quantity_NOC_LAVENDER,Standard_False);
-    myContext->SetMaterial(aisBody2,Graphic3d_NOM_PLASTIC,Standard_False);
 
     myContext->Display(aisBody1,Standard_False);
-    myContext->Display(aisBody2,Standard_False);
-     points = extract_points(myContext);
      myView->Redraw();
 }
 
@@ -757,7 +834,7 @@ BOOL MyGLView::analyse_point(QPoint a)
  if (points.size() > 0)
   for (unsigned long i=0;i<points.size();i++)
   {
-  if( points[i].Distance(WP)<10)
+  if( points[i].IsEqual(WP,10))
       {
           drawCircle(points[i]);
       }

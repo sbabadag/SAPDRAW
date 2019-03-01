@@ -274,12 +274,37 @@
 
 using namespace std;
 
+gp_Pln PlaneOfTheView(Handle(V3d_View) aView)
+    {
+/*    Standard_Real x_ori, y_ori, z_ori;
+    aView->Proj(x_ori, y_ori, z_ori);
+    gp_Dir proj_orientation(x_ori, y_ori, z_ori);
+    gp_Pln view_plane = gp_Pln(gp_Pnt (0, 0, 0), proj_orientation);
+    */
+    Standard_Real XEye,YEye,ZEye,XAt,YAt,ZAt;
+    aView->Eye(XEye,YEye,ZEye);
+    aView->At(XAt,YAt,ZAt);
+    gp_Pnt EyePoint(XEye,YEye,ZEye);
+    gp_Pnt AtPoint(XAt,YAt,ZAt);
+
+    gp_Vec EyeVector(EyePoint,AtPoint);
+    gp_Dir EyeDir(EyeVector);
+
+    gp_Pln PlaneOfTheView1 = gp_Pln(AtPoint,EyeDir);
+
+    return PlaneOfTheView1;
+
+//    return view_plane;
+    }
+
 gp_Pnt convertToPlane(const Standard_Integer Xs, const Standard_Integer Ys, Handle(V3d_View) myView)
 {
+
     gp_Pnt p;
     Standard_Real Xv, Yv, Zv;
     Standard_Real Vx, Vy, Vz;
-    gp_Pln aPlane(myView->Viewer()->PrivilegedPlane());
+//    gp_Pln aPlane(myView->Viewer()->PrivilegedPlane());
+    gp_Pln aPlane = PlaneOfTheView(myView);
 
 #ifdef OCC_PATCHED
     myView->Convert( Xs, Ys, Xv, Yv, Zv );
