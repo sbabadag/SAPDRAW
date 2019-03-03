@@ -17,6 +17,7 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+
 private slots:
     void on_pushButton_clicked();
 
@@ -27,6 +28,12 @@ private slots:
     void on_actionFront_triggered();
 
     void on_actionZoom_All_triggered();
+
+    void on_actionPoint_mode_triggered();
+
+    void on_actionPoint_mode_changed();
+
+    void on_actionB_l_triggered();
 
 private:
     Ui::MainWindow *ui;

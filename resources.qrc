@@ -8,5 +8,18 @@
         <file>images/icons8-select-all-16.png</file>
         <file>images/icons8-street-view-16.png</file>
         <file>images/icons8-top-view-16.png</file>
+        <file>images/icons8-circled-thin-48.png</file>
+        <file>images/icons8-front-view-48.png</file>
+        <file>images/icons8-line-40.png</file>
+        <file>images/icons8-orthogonal-view-40.png</file>
+        <file>images/icons8-rectangular-48.png</file>
+        <file>images/icons8-search-64.png</file>
+        <file>images/icons8-top-view-48.png</file>
+        <file>images/icons8-triangle-48.png</file>
+        <file>images/icons8-zoom-in-40.png</file>
+        <file>images/icons8-zoom-out-40.png</file>
+        <file>images/icons8-zoom-to-extents-48.png</file>
+        <file>images/icons8-zoom-to-extents-480.png</file>
+        <file>images/icons8-collect-40.png</file>
     </qresource>
 </RCC>

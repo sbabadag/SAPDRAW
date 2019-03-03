@@ -5,6 +5,8 @@
 
 #include <AIS_InteractiveContext.hxx>
 #include <vector>
+#include <QMessageBox>
+#include "divideline_dialog.h"
 
 using namespace std;
 
@@ -45,6 +47,8 @@ public:
     vector<TopoDS_Shape*> drawBuilding(vector<gp_Pnt> fpoints,Standard_Real YLength,int YQuantity);
     void handleSelectionChanged();
     gp_Pnt selectionChanged(void);
+    DivideLine_Dialog *DivideDialog;
+
 
 public slots:
     //! operations for the view.
@@ -101,7 +105,7 @@ private:
     //! the occ view.
 
     //! the occ context.
-    Handle(AIS_InteractiveContext) myContext;
+     Handle(AIS_InteractiveContext) myContext;
 
     //! save the mouse position.
     Standard_Integer myXmin;
@@ -120,6 +124,11 @@ private:
     int SelNum;
     gp_Pnt firstPoint ;
     gp_Pnt lastPoint;
+    gp_Pnt ssPt ;
+    gp_Pnt eePt ;
+    QMessageBox msgBox;
+
+
 
 
 };

@@ -293,6 +293,7 @@
 #include <Xw_Window.hxx>
 
 //
+//
 
 #ifdef WNT
     #include <WNT_Window.hxx>
@@ -334,6 +335,8 @@ MyGLView::MyGLView(QWidget* parent )
     // Enable the mouse tracking, by default the mouse tracking is disabled.
     setMouseTracking( true );
     SelNum =0;
+    DivideDialog = new (DivideLine_Dialog);
+
 
 }
 
@@ -387,9 +390,10 @@ void MyGLView::init()
 
     myContext->CloseAllContexts(true);
     myContext->OpenLocalContext();
-    myContext->ActivateStandardMode(TopAbs_VERTEX);
     myView->ZFitAll();
     myView->DepthFitAll();
+    DivideDialog->theContext = getContext();
+
 }
 
 const Handle(AIS_InteractiveContext)& MyGLView::getContext() const
@@ -478,8 +482,8 @@ void MyGLView::mouseMoveEvent( QMouseEvent * theEvent )
 {
 
  //   analyse_point(theEvent->pos());
-    gp_Pnt WP = selectionChanged();
-    Bar->showMessage(QString("X : %1 - Y: %2 - Z: %3").arg(WP.X()).arg(WP.Y()).arg(WP.Z()));
+//    gp_Pnt WP = selectionChanged();
+//    Bar->showMessage(QString("X : %1 - Y: %2 - Z: %3").arg(WP.X()).arg(WP.Y()).arg(WP.Z()));
 
 
     onMouseMove(theEvent->buttons(), theEvent->pos());
@@ -516,7 +520,7 @@ void MyGLView::onMButtonDown( const int /*theFlags*/, const QPoint thePoint )
 
 void MyGLView::onRButtonDown( const int /*theFlags*/, const QPoint /*thePoint*/ )
 {
-
+myCurrentMode = CurAction3d_DynamicPanning;
 }
 
 void MyGLView::onMouseWheel( const int /*theFlags*/, const int theDelta, const QPoint thePoint )
@@ -568,7 +572,7 @@ void MyGLView::onLButtonUp( const int theFlags, const QPoint thePoint )
             inputEvent(thePoint.x(), thePoint.y());
         }
     }
-
+//
 }
 
 void MyGLView::onMButtonUp( const int /*theFlags*/, const QPoint thePoint )
@@ -586,9 +590,6 @@ void MyGLView::onRButtonUp( const int /*theFlags*/, const QPoint thePoint )
 
 void MyGLView::onMouseMove( const int theFlags, const QPoint thePoint )
 {
-
-
-
 
     // Draw the rubber band.
     if (theFlags & Qt::LeftButton)
@@ -751,16 +752,21 @@ for (int j=0;j<YQuantity;j++)
 
 gp_Pnt MyGLView::selectionChanged()
 {
+
     gp_Pnt myPoint;
-//    myContext->CloseAllContexts(true);
-//    myContext->OpenLocalContext();
-//    myContext->ActivateStandardMode(TopAbs_VERTEX);
+
+  //  msgBox.setText(QString("%1 , %2 , %3 , - %4 , %5 , %6 ").arg(ssPt.X()).arg(ssPt.Y()).arg(ssPt.Z()).arg(eePt.X()).arg(eePt.Y()).arg(eePt.Z()));
+  //  msgBox.exec();
+            //
+
+
     myContext->InitSelected();
     while(myContext->MoreSelected())
     {
     if(myContext->HasSelectedShape())
     {
-
+ if (myContext->SelectedShape().ShapeType() == TopAbs_VERTEX)
+ {
     TopoDS_Shape myVertex = myContext->SelectedShape();
     //here i added a code to use the face i selected but
     //nothing worked.
@@ -772,18 +778,20 @@ gp_Pnt MyGLView::selectionChanged()
     }
     else
     {
-//    TopoDS_Shape vertex = Handle(AIS_Shape)::DownCast( myContext->SelectedInteractive() )->Shape();
-    //here i did the same..nothing worked
-//    TopoDS_Vertex & rvertex = TopoDS::Vertex(vertex);
-//    myPoint =  BRep_Tool::Pnt(rvertex);
+     if (myContext->SelectedShape().ShapeType() == TopAbs_WIRE)
+     {
+         DivideDialog->show();
+     }
+
     }
 
     myContext->NextSelected();
     }
     if (SelNum == 2) {SelNum = 0;lastPoint = myPoint;drawLine(firstPoint,lastPoint);};
     myContext->ClearSelected(true);
-
+}
  return myPoint;
+
 }
 
 void MyGLView::drawLine(gp_Pnt pt1,gp_Pnt pt2)

@@ -25,11 +25,21 @@
    </property>
    <widget class="QMenu" name="menuDraw">
     <property name="title">
-     <string>Draw</string>
+     <string>Dosya</string>
     </property>
-    <addaction name="actionLine"/>
+    <addaction name="actionA"/>
+    <addaction name="actionKaydet"/>
+    <addaction name="actionFarkl_isimle_kaydet"/>
+    <addaction name="actionExport"/>
+   </widget>
+   <widget class="QMenu" name="menuMofifiye">
+    <property name="title">
+     <string>Modifiye</string>
+    </property>
+    <addaction name="actionB_l"/>
    </widget>
    <addaction name="menuDraw"/>
+   <addaction name="menuMofifiye"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
@@ -45,23 +55,36 @@
    <addaction name="actionFront"/>
    <addaction name="actionTop"/>
    <addaction name="actionZoom_All"/>
+   <addaction name="separator"/>
    <addaction name="actionLine"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QToolBar" name="toolBar_2">
+   <property name="windowTitle">
+    <string>toolBar_2</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionPoint_mode"/>
+  </widget>
   <action name="actionLine">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/rec/images/icons8-select-all-16.png</normaloff>:/rec/images/icons8-select-all-16.png</iconset>
+     <normaloff>:/rec/images/icons8-line-40.png</normaloff>:/rec/images/icons8-line-40.png</iconset>
    </property>
    <property name="text">
-    <string>Line</string>
+    <string>Aç</string>
    </property>
   </action>
   <action name="actionFront">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/rec/images/icons8-front-view-16.png</normaloff>
-     <normalon>images/icons8-front-view-16.png</normalon>:/rec/images/icons8-front-view-16.png</iconset>
+     <normaloff>:/rec/images/icons8-front-view-48.png</normaloff>
+     <normalon>images/icons8-front-view-16.png</normalon>:/rec/images/icons8-front-view-48.png</iconset>
    </property>
    <property name="text">
     <string>Front</string>
@@ -73,7 +96,7 @@
   <action name="actionTop">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/rec/images/icons8-top-view-16.png</normaloff>:/rec/images/icons8-top-view-16.png</iconset>
+     <normaloff>:/rec/images/icons8-top-view-48.png</normaloff>:/rec/images/icons8-top-view-48.png</iconset>
    </property>
    <property name="text">
     <string>Top</string>
@@ -95,6 +118,62 @@
    </property>
    <property name="shortcut">
     <string>Shift+Z</string>
+   </property>
+  </action>
+  <action name="actionSnap_end">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/rec/images/icons8-rectangular-48.png</normaloff>:/rec/images/icons8-rectangular-48.png</iconset>
+   </property>
+   <property name="text">
+    <string>Snap end</string>
+   </property>
+  </action>
+  <action name="actionPoint_mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/rec/images/icons8-collect-40.png</normaloff>:/rec/images/icons8-collect-40.png</iconset>
+   </property>
+   <property name="text">
+    <string>Point mode</string>
+   </property>
+   <property name="toolTip">
+    <string>Selection to point mode</string>
+   </property>
+  </action>
+  <action name="actionB_l">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/rec/images/icons8-triangle-48.png</normaloff>:/rec/images/icons8-triangle-48.png</iconset>
+   </property>
+   <property name="text">
+    <string>Böl</string>
+   </property>
+  </action>
+  <action name="actionA">
+   <property name="text">
+    <string>Aç</string>
+   </property>
+  </action>
+  <action name="actionKaydet">
+   <property name="text">
+    <string>Kaydet</string>
+   </property>
+  </action>
+  <action name="actionFarkl_isimle_kaydet">
+   <property name="text">
+    <string>Farklı isimle kaydet</string>
+   </property>
+  </action>
+  <action name="actionExport">
+   <property name="text">
+    <string>Dışarı aktar</string>
    </property>
   </action>
  </widget>

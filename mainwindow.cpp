@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setCentralWidget(myOCCView);
    myOCCView->ui = ui;
    myOCCView->Bar = ui->statusBar;
+
 }
 
 MainWindow::~MainWindow()
@@ -58,11 +59,13 @@ void MainWindow::on_actionLine_triggered()
 void MainWindow::on_actionTop_triggered()
 {
     myOCCView->myView->SetProj(V3d_Zpos);
+    myOCCView->myView->FitAll();
 }
 
 void MainWindow::on_actionFront_triggered()
 {
-    myOCCView->myView->SetProj(V3d_Xpos);
+    myOCCView->myView->SetProj(V3d_Ypos);
+    myOCCView->myView->FitAll();
 
 }
 
@@ -70,4 +73,25 @@ void MainWindow::on_actionZoom_All_triggered()
 {
     myOCCView->myView->FitAll();
 
+}
+
+void MainWindow::on_actionPoint_mode_triggered()
+{
+}
+
+void MainWindow::on_actionPoint_mode_changed()
+{
+    if (ui->actionPoint_mode->isChecked())
+    {
+        myOCCView->getContext()->ActivateStandardMode(TopAbs_VERTEX);
+
+    }
+    else {
+        myOCCView->getContext()->ActivateStandardMode(TopAbs_EDGE);
+    }
+}
+
+void MainWindow::on_actionB_l_triggered()
+{
+    myOCCView->DivideDialog->show();
 }
