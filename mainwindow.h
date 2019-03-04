@@ -35,6 +35,10 @@ private slots:
 
     void on_actionB_l_triggered();
 
+    void on_actionClip_Plane_triggered();
+
+    void on_actionIzgara_triggered();
+
 private:
     Ui::MainWindow *ui;
     MyGLView *myOCCView ;

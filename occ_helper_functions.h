@@ -273,6 +273,7 @@
 #include <IntAna_IntConicQuad.hxx>
 #include <ProjLib_ProjectOnPlane.hxx>
 #include <Geom_Line.hxx>
+#include <QString>
 
 using namespace std;
 
@@ -285,6 +286,9 @@ using namespace std;
  gp_Pnt ConvertClickToPoint(Standard_Real x, Standard_Real y, Handle(V3d_View) aView);
  gp_Pnt PickPoint(Handle_V3d_View aView, TopoDS_Shape myShape, long x, long y);
  vector<gp_Pnt> extract_points(const Handle(AIS_InteractiveContext) &Context);
+ void CreateClipPlane(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Context,const gp_Pln ClipPlane1,gp_Pln ClipPlane2);
+ void drawLine(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Context,gp_Pnt pt1,gp_Pnt pt2);
+ void CreateMainGrid(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Context,gp_Pnt start_Point ,QString XValues,QString YValues,QString ZValues,int dir);
 
 
 

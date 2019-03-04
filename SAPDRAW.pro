@@ -37,17 +37,20 @@ SOURCES += \
         mainwindow.cpp \
     view.cpp \
     divideline_dialog.cpp \
-    occ_helper_functions.cpp
+    occ_helper_functions.cpp \
+    axesdialog.cpp
 
 HEADERS += \
         mainwindow.h \
     view.h \
     occ_helper_functions.h \
-    divideline_dialog.h
+    divideline_dialog.h \
+    axesdialog.h
 
 FORMS += \
         mainwindow.ui \
-    divideline_dialog.ui
+    divideline_dialog.ui \
+    axesdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

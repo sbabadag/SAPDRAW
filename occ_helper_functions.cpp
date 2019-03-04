@@ -268,6 +268,9 @@
 #include <IntAna_IntConicQuad.hxx>
 #include <ProjLib_ProjectOnPlane.hxx>
 #include <Geom_Line.hxx>
+#include <Graphic3d_Texture2Dmanual.hxx>
+#include <QString>
+#include <QStringList>
 
 
 using namespace std;
@@ -553,3 +556,178 @@ bool is_point_near(gp_Pnt p1,gp_Pnt p2,int tolerance)
 };
     return points;
 };
+
+void CreateClipPlane(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Context,const gp_Pln ClipPlane1,gp_Pln ClipPlane2)
+{
+    const Handle(Graphic3d_ClipPlane)& aClipPlane1 = new Graphic3d_ClipPlane();
+    aClipPlane1->SetEquation (ClipPlane1);
+    aClipPlane1->SetCapping (true);
+    aView->AddClipPlane (aClipPlane1);
+    aClipPlane1->SetOn(Standard_True);
+//
+    const Handle(Graphic3d_ClipPlane)& aClipPlane2 = new Graphic3d_ClipPlane();
+    aClipPlane2->SetEquation (ClipPlane2);
+    aClipPlane2->SetCapping (true);
+    aView->AddClipPlane (aClipPlane2);
+    aClipPlane2->SetOn(Standard_True);
+
+    // update the view
+
+    aView->Update();
+
+}
+
+void drawLine(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Context,gp_Pnt pt1,gp_Pnt pt2)
+{
+
+    //make a vertex from the point
+    //make one more point
+
+    Handle(Geom_TrimmedCurve) aSegment1 = GC_MakeSegment(pt1, pt2);
+    TopoDS_Edge anEdge1 = BRepBuilderAPI_MakeEdge(aSegment1);
+    TopoDS_Wire threadingWire1 = BRepBuilderAPI_MakeWire(anEdge1, anEdge1);
+    //display the vertex
+    Handle(AIS_Shape) aisBody1 = new AIS_Shape(threadingWire1);
+    Context->SetColor(aisBody1,Quantity_NOC_LAVENDER,Standard_False);
+    Context->SetMaterial(aisBody1,Graphic3d_NOM_PLASTIC,Standard_False);
+    Context->Display(aisBody1,Standard_False);
+    aView->Redraw();
+}
+
+void CreateMainGrid(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Context,gp_Pnt start_Point ,QString XValues,QString YValues,QString ZValues,int dir)
+{
+ QStringList *XV,*YV,*ZV;
+ vector<Standard_Real> Xn,Yn,Zn;
+ gp_Pnt pt1,pt2;
+ Standard_Real Xmax,Ymax,Zmax;
+ Standard_Real Xcur,Ycur,Zcur;
+ Xcur =0;
+ Ycur =0;
+ Zcur =0;
+
+ XV = new (QStringList);
+ YV = new (QStringList);
+ ZV = new (QStringList);
+
+
+ *XV = XValues.split(QRegExp(" "), QString::SkipEmptyParts);
+ *YV = YValues.split(QRegExp(" "), QString::SkipEmptyParts);
+ *ZV = ZValues.split(QRegExp(" "), QString::SkipEmptyParts);
+
+ Xn.push_back(Standard_Real(0));
+ for (int i=0;i<XV->size();i++)
+ {
+     Xn.push_back(XV->at(i).toFloat());
+     Xmax += XV->at(i).toFloat();
+ };
+
+ Yn.push_back(Standard_Real(0));
+ for (int i=0;i<YV->size();i++)
+ {
+     Yn.push_back(YV->at(i).toFloat());
+     Ymax += YV->at(i).toFloat();
+ };
+ Zn.push_back(Standard_Real(0));
+ for (int i=0;i<ZV->size();i++)
+ {
+     Zn.push_back(ZV->at(i).toFloat());
+     Zmax += ZV->at(i).toFloat();
+ };
+
+//  Xmax = *max_element(Xn.begin(), Xn.end());
+//  Ymax = *max_element(Yn.begin(), Yn.end());
+//  Zmax = *max_element(Zn.begin(), Zn.end());
+
+
+
+
+switch (dir)
+ {
+  case 0:
+        {
+    for (int j=0;j<Yn.size();j++)
+    {
+        Ycur += Yn[j];
+
+    for (int i=0;i<Xn.size();i++)
+    {
+          pt1 = gp_Pnt(start_Point.X(),     start_Point.Y()+Ycur,0);
+          pt2 = gp_Pnt(start_Point.X()+Xmax,start_Point.Y()+Ycur,0);
+          drawLine(aView,Context,pt1,pt2);
+    }
+    };
+    for (int j=0;j<Xn.size();j++)
+    {
+        Xcur += Xn[j];
+
+    for (int i=0;i<Yn.size();i++)
+    {
+          pt1 = gp_Pnt(start_Point.X()+Xcur,start_Point.Y(),0);
+          pt2 = gp_Pnt(start_Point.X()+Xcur,start_Point.Y()+Ymax,0);
+          drawLine(aView,Context,pt1,pt2);
+    }
+
+
+        }
+};
+  break;
+case 1:
+      {
+    for (int j=0;j<Zn.size();j++)
+    {
+        Zcur += Zn[j];
+
+    for (int i=0;i<Xn.size();i++)
+    {
+          pt1 = gp_Pnt(start_Point.X(),     start_Point.Y()+Zcur,0);
+          pt2 = gp_Pnt(start_Point.X()+Xmax,start_Point.Y()+Zcur,0);
+          drawLine(aView,Context,pt1,pt2);
+    }
+    };
+    for (int j=0;j<Xn.size();j++)
+    {
+        Xcur += Xn[j];
+
+    for (int i=0;i<Yn.size();i++)
+    {
+          pt1 = gp_Pnt(start_Point.X()+Xcur,start_Point.Z());
+          pt2 = gp_Pnt(start_Point.X()+Xcur,start_Point.Z()+Ymax,0);
+          drawLine(aView,Context,pt1,pt2);
+    }
+
+
+        }
+      };
+    break;
+case 2:
+      {
+    for (int j=0;j<Yn.size();j++)
+    {
+        Ycur += Yn[j];
+
+    for (int i=0;i<Xn.size();i++)
+    {
+          pt1 = gp_Pnt(start_Point.X(),     start_Point.Y()+Ycur,0);
+          pt2 = gp_Pnt(start_Point.X()+Xmax,start_Point.Y()+Ycur,0);
+          drawLine(aView,Context,pt1,pt2);
+    }
+    };
+    for (int j=0;j<Xn.size();j++)
+    {
+        Xcur += Xn[j];
+
+    for (int i=0;i<Yn.size();i++)
+    {
+          pt1 = gp_Pnt(start_Point.X()+Xcur,start_Point.Y(),0);
+          pt2 = gp_Pnt(start_Point.X()+Xcur,start_Point.Y()+Ymax,0);
+          drawLine(aView,Context,pt1,pt2);
+    }
+
+
+        }
+      };
+    break;
+
+}
+
+}

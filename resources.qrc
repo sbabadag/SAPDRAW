@@ -21,5 +21,6 @@
         <file>images/icons8-zoom-to-extents-48.png</file>
         <file>images/icons8-zoom-to-extents-480.png</file>
         <file>images/icons8-collect-40.png</file>
+        <file>images/grid.png</file>
     </qresource>
 </RCC>

@@ -57,7 +57,6 @@ public slots:
     void reset(void);
     void zoom(void);
     void rotate(void);
-    void drawLine(gp_Pnt pt1,gp_Pnt pt2);
 
 
 

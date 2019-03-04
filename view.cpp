@@ -393,6 +393,8 @@ void MyGLView::init()
     myView->ZFitAll();
     myView->DepthFitAll();
     DivideDialog->theContext = getContext();
+    getContext()->ActivateStandardMode(TopAbs_EDGE);
+
 
 }
 
@@ -754,7 +756,7 @@ gp_Pnt MyGLView::selectionChanged()
 {
 
     gp_Pnt myPoint;
-
+ /*
   //  msgBox.setText(QString("%1 , %2 , %3 , - %4 , %5 , %6 ").arg(ssPt.X()).arg(ssPt.Y()).arg(ssPt.Z()).arg(eePt.X()).arg(eePt.Y()).arg(eePt.Z()));
   //  msgBox.exec();
             //
@@ -790,34 +792,12 @@ gp_Pnt MyGLView::selectionChanged()
     if (SelNum == 2) {SelNum = 0;lastPoint = myPoint;drawLine(firstPoint,lastPoint);};
     myContext->ClearSelected(true);
 }
+*/
  return myPoint;
 
 }
 
-void MyGLView::drawLine(gp_Pnt pt1,gp_Pnt pt2)
-{
 
-
-
-    //make a vertex from the point
-    //make one more point
-
-    Handle(Geom_TrimmedCurve) aSegment1 = GC_MakeSegment(pt1, pt2);
-
-    TopoDS_Edge anEdge1 = BRepBuilderAPI_MakeEdge(aSegment1);
-
-    TopoDS_Wire threadingWire1 = BRepBuilderAPI_MakeWire(anEdge1, anEdge1);
-
-
-    //display the vertex
-    Handle(AIS_Shape) aisBody1 = new AIS_Shape(threadingWire1);
-
-    myContext->SetColor(aisBody1,Quantity_NOC_LAVENDER,Standard_False);
-    myContext->SetMaterial(aisBody1,Graphic3d_NOM_PLASTIC,Standard_False);
-
-    myContext->Display(aisBody1,Standard_False);
-     myView->Redraw();
-}
 
 void MyGLView::drawCircle(gp_Pnt a)
 {

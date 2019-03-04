@@ -12,6 +12,7 @@
 #include <Standard_PrimitiveTypes.hxx>
 #include <V3d_TypeOfOrientation.hxx>
 #include <V3d_View.hxx>
+#include "occ_helper_functions.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -94,4 +95,17 @@ void MainWindow::on_actionPoint_mode_changed()
 void MainWindow::on_actionB_l_triggered()
 {
     myOCCView->DivideDialog->show();
+}
+
+void MainWindow::on_actionClip_Plane_triggered()
+{
+    gp_Pln Pln1(gp_Pnt(0,12001,0),gp_Dir(gp_Vec(gp_Pnt(0,0,0),gp_Pnt(0,1,0))));
+    gp_Pln Pln2(gp_Pnt(0,18000,0),gp_Dir(gp_Vec(gp_Pnt(0,0,0),gp_Pnt(0,-1,0))));
+
+  CreateClipPlane(myOCCView->myView,myOCCView->getContext(),Pln1,Pln2);
+}
+
+void MainWindow::on_actionIzgara_triggered()
+{
+    CreateMainGrid(myOCCView->myView,myOCCView->getContext(),gp_Pnt(0,0,0),"2000 3000","1000 2000","6000 7000",0);
 }
