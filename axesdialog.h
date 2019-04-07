@@ -14,6 +14,15 @@ class AxesDialog : public QDialog
 public:
     explicit AxesDialog(QWidget *parent = nullptr);
     ~AxesDialog();
+    Ui::AxesDialog *Getui();
+    void GetAxis(QString &X,QString &Y,QString &Z,int &XS,int &YS,int &ZS);
+
+private slots:
+    void on_pushButton_clicked();
+    void on_pushButton_2_clicked();
+
+signals:
+    void GenerateGrid();
 
 private:
     Ui::AxesDialog *ui;

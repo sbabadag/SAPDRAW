@@ -1,7 +1,6 @@
 #include <OpenGl_GraphicDriver.hxx>
 
 #include "View.h"
-#include "occ_helper_functions.h"
 #include "mainwindow.h"
 #include <QMainWindow>
 #include <QStatusBar>
@@ -96,7 +95,6 @@
 #include <UnitsAPI.hxx>
 #include <V3d_View.hxx>
 #include <V3d_Viewer.hxx>
-#include <WNT_Window.hxx>
 #include <Prs3d_PointAspect.hxx>
 #include <AIS_Point.hxx>
 #include <BRep_Tool.hxx>
@@ -166,13 +164,11 @@
 #include <Interface_Static.hxx>
 #include <OpenGl_GraphicDriver.hxx>
 #include <Graphic3d_GraphicDriver.hxx>
-#include <Xw_Window.hxx>
 #include <V3d_View.hxx>
 #include <Graphic3d_GraphicDriver.hxx>
 #include <Aspect_Handle.hxx>
 #include <Aspect_DisplayConnection.hxx>
 #include <OpenGl_GraphicDriver.hxx>
-#include <WNT_Window.hxx>
 #include <AIS_InteractiveContext.hxx>
 #include <TopoDS_Shape.hxx>
 #include <AIS_Shape.hxx>
@@ -286,11 +282,12 @@
 
 // occ header files.
 #include <V3d_Viewer.hxx>
-//#include <WNT_Window.hxx>
 #include <Aspect_Handle.hxx>
 
 #include <Graphic3d_GraphicDriver.hxx>
-#include <Xw_Window.hxx>
+#include "occ_helper_functions.h"
+#include "view.h"
+#include <AIS_Shape.hxx>
 
 //
 //
@@ -482,10 +479,9 @@ void MyGLView::mouseReleaseEvent( QMouseEvent* theEvent )
 
 void MyGLView::mouseMoveEvent( QMouseEvent * theEvent )
 {
-
- //   analyse_point(theEvent->pos());
-//    gp_Pnt WP = selectionChanged();
-//    Bar->showMessage(QString("X : %1 - Y: %2 - Z: %3").arg(WP.X()).arg(WP.Y()).arg(WP.Z()));
+    gp_Pnt P;
+    OnMouseHover(theEvent->pos().x(),theEvent->pos().y(),P);
+    Bar->showMessage(QString("X : %1 - Y: %2 - Z: %3").arg(P.X()).arg(P.Y()).arg(P.Z()));
 
 
     onMouseMove(theEvent->buttons(), theEvent->pos());
@@ -719,6 +715,17 @@ void MyGLView::panByMiddleButton( const QPoint& thePoint )
     myView->Pan(aCenterX - thePoint.x(), thePoint.y() - aCenterY);
 }
 
+void MyGLView::Dosnap(gp_Pnt P,int snapmode)
+{
+    switch (snapmode)
+    {
+       case 0:
+              {
+               drawCircle(P);
+              };break;
+    }
+}
+
 vector<TopoDS_Shape*> MyGLView::drawBuilding(vector<gp_Pnt> fpoints,Standard_Real YLength,int YQuantity)
 {
     vector<TopoDS_Shape*> res;
@@ -747,7 +754,7 @@ for (int j=0;j<YQuantity;j++)
          myContext->Display(aisBody1,Standard_False);
      }
 
-     points = extract_points(myContext);
+    points = extract_points(myContext);
 
      return res;
 }
@@ -756,7 +763,7 @@ gp_Pnt MyGLView::selectionChanged()
 {
 
     gp_Pnt myPoint;
- /*
+
   //  msgBox.setText(QString("%1 , %2 , %3 , - %4 , %5 , %6 ").arg(ssPt.X()).arg(ssPt.Y()).arg(ssPt.Z()).arg(eePt.X()).arg(eePt.Y()).arg(eePt.Z()));
   //  msgBox.exec();
             //
@@ -789,10 +796,10 @@ gp_Pnt MyGLView::selectionChanged()
 
     myContext->NextSelected();
     }
-    if (SelNum == 2) {SelNum = 0;lastPoint = myPoint;drawLine(firstPoint,lastPoint);};
+    if (SelNum == 2) {SelNum = 0;lastPoint = myPoint;drawLine(myView,myContext,firstPoint,lastPoint);};
     myContext->ClearSelected(true);
 }
-*/
+
  return myPoint;
 
 }
@@ -808,25 +815,65 @@ void MyGLView::drawCircle(gp_Pnt a)
 
     // Set the vertex shape, color, and size
     Quantity_Color color(Quantity_NOC_YELLOW);
-    Handle_Prs3d_PointAspect myPointAspect=new Prs3d_PointAspect(Aspect_TOM_O,color,2);
+    Handle_Prs3d_PointAspect myPointAspect=new Prs3d_PointAspect(Aspect_TOM_O,color,10);
     aShape->Attributes()->SetPointAspect(myPointAspect);
     myContext->Display(aShape,Standard_False);
 
 }
 
-BOOL MyGLView::analyse_point(QPoint a)
+bool MyGLView::analyse_point(QPoint a)
 {
-    gp_Pnt WP = convertToPlane(a.x(),a.y(),myView);
+    gp_Pnt WP = ConvertClickToPoint(a.x(),a.y(),myView);
     Bar->showMessage(QString("X : %1 - Y: %2 - Z: %3").arg(WP.X()).arg(WP.Y()).arg(WP.Z()));
+
 
  if (points.size() > 0)
   for (unsigned long i=0;i<points.size();i++)
   {
-  if( points[i].IsEqual(WP,10))
+  if( points[i].IsEqual(WP,1))
       {
           drawCircle(points[i]);
       }
   }
   return false;
 };
+
+void MyGLView::OnMouseHover(Standard_Real x,Standard_Real y,gp_Pnt &P)
+{
+    myContext->MoveTo(x, y, myView);
+    if(myContext->HasDetected())
+    {
+    myContext->InitDetected();
+
+    do
+    {
+    Handle_AIS_InteractiveObject hObj = myContext->DetectedInteractive();
+    if(!hObj.IsNull())
+    {
+    //Access the highlighted object
+        Handle(AIS_Shape) hShape = Handle(AIS_Shape)::DownCast(hObj);
+        if(hShape.IsNull()) //not AIS_Shape
+        {
+        return;
+        }
+
+        const TopoDS_Shape & shape = hShape->Shape(); //Get TopoDS_Shape (geometry)
+        if(shape.ShapeType()== TopAbs_VERTEX)
+        {
+        const TopoDS_Vertex & vertex = TopoDS::Vertex(shape);
+         P = BRep_Tool::Pnt(vertex);
+        }
+        else if(shape.ShapeType()== TopAbs_WIRE)
+        {
+        const TopoDS_Wire & wire = TopoDS::Wire(shape);
+        }
+    }
+    myContext->NextDetected();
+
+    }
+
+
+    while(myContext->MoreDetected());
+    }
+}
 

@@ -42,7 +42,7 @@ public:
 
     const Handle(AIS_InteractiveContext)& getContext() const;
 
-    BOOL analyse_point(QPoint a);
+    bool analyse_point(QPoint a);
     void drawCircle(gp_Pnt a);
     vector<TopoDS_Shape*> drawBuilding(vector<gp_Pnt> fpoints,Standard_Real YLength,int YQuantity);
     void handleSelectionChanged();
@@ -57,6 +57,8 @@ public slots:
     void reset(void);
     void zoom(void);
     void rotate(void);
+public : signals:
+    void ChangeDistances(QString G);
 
 
 
@@ -81,6 +83,7 @@ protected:
     virtual void onRButtonUp(const int theFlags, const QPoint thePoint);
     virtual void onMouseMove(const int theFlags, const QPoint thePoint);
 
+
     // Popup menu.
     virtual void addItemInPopup(QMenu* theMenu);
 
@@ -97,7 +100,8 @@ protected:
     void panByMiddleButton(const QPoint& thePoint);
 
 private:
-
+    void OnMouseHover(Standard_Real x, Standard_Real y,gp_Pnt &P);
+    void Dosnap(gp_Pnt P,int snapmode);
     //! the occ viewer.
     Handle(V3d_Viewer) myViewer;
 

@@ -87,7 +87,6 @@
 #include <UnitsAPI.hxx>
 #include <V3d_View.hxx>
 #include <V3d_Viewer.hxx>
-#include <WNT_Window.hxx>
 #include <Prs3d_PointAspect.hxx>
 #include <AIS_Point.hxx>
 #include <BRep_Tool.hxx>
@@ -155,15 +154,11 @@
 #include <IGESControl_Controller.hxx>
 #include <IGESControl_Writer.hxx>
 #include <Interface_Static.hxx>
-#include <OpenGl_GraphicDriver.hxx>
 #include <Graphic3d_GraphicDriver.hxx>
-#include <Xw_Window.hxx>
 #include <V3d_View.hxx>
 #include <Graphic3d_GraphicDriver.hxx>
 #include <Aspect_Handle.hxx>
 #include <Aspect_DisplayConnection.hxx>
-#include <OpenGl_GraphicDriver.hxx>
-#include <WNT_Window.hxx>
 #include <AIS_InteractiveContext.hxx>
 #include <TopoDS_Shape.hxx>
 #include <AIS_Shape.hxx>
@@ -286,9 +281,15 @@ using namespace std;
  gp_Pnt ConvertClickToPoint(Standard_Real x, Standard_Real y, Handle(V3d_View) aView);
  gp_Pnt PickPoint(Handle_V3d_View aView, TopoDS_Shape myShape, long x, long y);
  vector<gp_Pnt> extract_points(const Handle(AIS_InteractiveContext) &Context);
- void CreateClipPlane(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Context,const gp_Pln ClipPlane1,gp_Pln ClipPlane2);
- void drawLine(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Context,gp_Pnt pt1,gp_Pnt pt2);
+ void CreateClipPlane(Handle(V3d_View) aView,const gp_Pln ClipPlane1,gp_Pln ClipPlane2,Graphic3d_ClipPlane& p1,Graphic3d_ClipPlane& p2);
+ void drawLine(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Context,gp_Pnt pt1,gp_Pnt pt2);;
  void CreateMainGrid(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Context,gp_Pnt start_Point ,QString XValues,QString YValues,QString ZValues,int dir);
+ Standard_Boolean Convert2dPntTo3dPnt(const Handle_V3d_View& aView, const Standard_Integer aX2d, const Standard_Integer aY2d, gp_Pnt& a3dPoint);
+ gp_Pnt convert2DpointTo3DPointOnPlane(Standard_Real x, Standard_Real y, Handle(V3d_View) view);
+ vector<gp_Pnt*> deleteDuplicatePoints(vector<gp_Pnt*> points);
+
+
+
 
 
 

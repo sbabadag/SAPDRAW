@@ -82,7 +82,6 @@
 #include <UnitsAPI.hxx>
 #include <V3d_View.hxx>
 #include <V3d_Viewer.hxx>
-#include <WNT_Window.hxx>
 #include <Prs3d_PointAspect.hxx>
 #include <AIS_Point.hxx>
 #include <BRep_Tool.hxx>
@@ -152,13 +151,11 @@
 #include <Interface_Static.hxx>
 #include <OpenGl_GraphicDriver.hxx>
 #include <Graphic3d_GraphicDriver.hxx>
-#include <Xw_Window.hxx>
 #include <V3d_View.hxx>
 #include <Graphic3d_GraphicDriver.hxx>
 #include <Aspect_Handle.hxx>
 #include <Aspect_DisplayConnection.hxx>
 #include <OpenGl_GraphicDriver.hxx>
-#include <WNT_Window.hxx>
 #include <AIS_InteractiveContext.hxx>
 #include <TopoDS_Shape.hxx>
 #include <AIS_Shape.hxx>
@@ -271,9 +268,32 @@
 #include <Graphic3d_Texture2Dmanual.hxx>
 #include <QString>
 #include <QStringList>
+#include <AIS_ListOfInteractive.hxx>
+#include <AIS_ListIteratorOfListOfInteractive.hxx>
 
 
 using namespace std;
+
+
+vector<gp_Pnt*> deleteDuplicatePoints(vector<gp_Pnt*> points)
+{
+    vector<gp_Pnt*> temp;
+    int pno;
+    for (int j=0;j<points.size();j++)
+    {
+        pno =1;
+
+    for (int i=0;i<points.size();i++)
+    {
+        if (points[j]->IsEqual(*points[i],0.1)) pno++;
+
+    }
+    if (pno == 1) temp.push_back(points[j]);
+
+    }
+    return temp;
+}
+
 
  void DrawPoint(const Handle(AIS_InteractiveContext) &Context,gp_Pnt aPoint )
 {
@@ -284,7 +304,7 @@ using namespace std;
 
     // Set the vertex shape, color, and size
     Quantity_Color color(Quantity_NOC_YELLOW);
-    Handle_Prs3d_PointAspect myPointAspect=new Prs3d_PointAspect(Aspect_TOM_O,color,1);
+    Handle_Prs3d_PointAspect myPointAspect=new Prs3d_PointAspect(Aspect_TOM_O,color,0.1);
     aShape->Attributes()->SetPointAspect(myPointAspect);
     Context->Display(aShape,true);
 }
@@ -443,6 +463,7 @@ return p3D;
     gp_Dir EyeDir(EyeVector);
 
     gp_Pln PlaneOfTheView = gp_Pln(AtPoint,EyeDir);
+
     Standard_Real X,Y,Z;
     aView->Convert(int(x),int(y),X,Y,Z);
     gp_Pnt ConvertedPoint(X,Y,Z);
@@ -455,67 +476,66 @@ return p3D;
 }
 
 
- gp_Pnt PickPoint(Handle_V3d_View aView, TopoDS_Shape myShape, long x, long y)
-{
-    V3d_Coordinate xEye, yEye, zEye, xAt, yAt, zAt;
-    gp_Pnt resultPoint;
+ gp_Pnt PickPoint(Handle_V3d_View m_view, TopoDS_Shape myShape, long x, long y)
+ {
+ gp_Pnt resultPoint;
+ V3d_Coordinate xEye, yEye, zEye, xAt, yAt, zAt;
 
-    aView->Eye(xEye, yEye, zEye);
-    aView->At(xAt, yAt, zAt);
-    gp_Pnt EyePoint(xEye, yEye, zEye);
-    gp_Pnt AtPoint(xAt, yAt, zAt);
+ m_view->Eye(xEye, yEye, zEye);
+ m_view->At(xAt, yAt, zAt);
+ gp_Pnt EyePoint(xEye, yEye, zEye);
+ gp_Pnt AtPoint(xAt, yAt, zAt);
 
-    gp_Vec EyeVector(EyePoint, AtPoint);
-    gp_Dir EyeDir(EyeVector);
+ gp_Vec EyeVector(EyePoint, AtPoint);
+ gp_Dir EyeDir(EyeVector);
 
-    gp_Pln PlaneOfView = gp_Pln(AtPoint, EyeDir);
+ gp_Pln PlaneOfView = gp_Pln(AtPoint, EyeDir);
 
-    Standard_Real theX, theY, theZ;
-    aView->Convert(x, y, theX, theY, theZ);
-    gp_Pnt ConvertedPoint(theX, theY, theZ);
+ Standard_Real theX, theY, theZ;
+ m_view->Convert(x, y, theX, theY, theZ);
+ gp_Pnt ConvertedPoint (theX, theY, theZ);
 
-    gp_Pnt2d ConvertedPointOnPlane = ProjLib::Project(PlaneOfView, ConvertedPoint);
+ gp_Pnt2d ConvertedPointOnPlane = ProjLib::Project(PlaneOfView, ConvertedPoint);
 
-    gp_Pnt shapePoint = ElSLib::Value(ConvertedPointOnPlane.X(), ConvertedPointOnPlane.Y(), PlaneOfView);
-    resultPoint = shapePoint;
+ gp_Pnt shapePoint = ElSLib::Value(ConvertedPointOnPlane.X(), ConvertedPointOnPlane.Y(), PlaneOfView);
+ resultPoint = shapePoint;//Initialize with a very far point from the camera
 
-    GC_MakeLine line(EyePoint, shapePoint);
-    TopExp_Explorer exp;
-    TopAbs_State aState;
+ GC_MakeLine line(shapePoint, EyeDir);
+ TopExp_Explorer exp;
+ TopAbs_State aState;
 
+ for (exp.Init(myShape, TopAbs_FACE); exp.More(); exp.Next())
+ {
+ TopoDS_Face face = TopoDS::Face(exp.Current());
+ BRepAdaptor_Surface surface(face);
 
-    int iii = 0;
-    for (exp.Init(myShape, TopAbs_FACE); exp.More(); exp.Next())
-    {
-        TopoDS_Face face = TopoDS::Face(exp.Current());
-        BRepAdaptor_Surface surface(face);
-        const GeomAdaptor_Surface& geomAdapSurf = surface.Surface();
-        const Handle(Geom_Surface)& geomSurf = geomAdapSurf.Surface();
+ const GeomAdaptor_Surface& geomAdapSurf = surface.Surface();
+ const Handle(Geom_Surface)& geomSurf = geomAdapSurf.Surface();
 
-        GeomAPI_IntCS inCS;
-        inCS.Perform(line.Value(), geomSurf);
-        if (inCS.IsDone())
-        {
-            if (inCS.NbPoints() != 0)
-            {
-                shapePoint = gp_Pnt(inCS.Point(1).XYZ());
+ GeomAPI_IntCS inCS;
+ inCS.Perform(line, geomSurf);
+ if (inCS.IsDone())
+ {
+ if (inCS.NbPoints()!=0)
+ {
+ shapePoint = gp_Pnt(inCS.Point(1).XYZ());
 
-                ShapeAnalysis_Surface shapeAnalysis(geomSurf);
-                gp_Pnt2d shapePoint2D = shapeAnalysis.ValueOfUV(shapePoint, Precision::Confusion());
-                BRepClass_FaceClassifier aClassifier(face, shapePoint2D, Precision::Confusion());
-                aState = aClassifier.State();
-                if ((aState == TopAbs_ON) || (aState == TopAbs_IN))
-                {
-                    if (resultPoint.Distance(EyePoint) > shapePoint.Distance(shapePoint))
-                    {
-                        resultPoint = shapePoint;
-                    }
-                }
-            }
-        }
-    }
-    return resultPoint;
-}
+ ShapeAnalysis_Surface shapeAnalysis(geomSurf);
+ gp_Pnt2d shapePoint2D = shapeAnalysis.ValueOfUV(shapePoint, Precision::Confusion());
+ BRepClass_FaceClassifier aClassifier(face, shapePoint2D, Precision::Confusion());
+ aState = aClassifier.State();
+ if ((aState==TopAbs_ON) || (aState == TopAbs_IN))
+ {
+ if (resultPoint.Distance(EyePoint) > shapePoint.Distance(shapePoint))
+ {
+ resultPoint = shapePoint;
+ }
+ }
+ }
+ }
+ }
+ return resultPoint;
+ }
 
 bool is_point_near(gp_Pnt p1,gp_Pnt p2,int tolerance)
 {
@@ -557,19 +577,19 @@ bool is_point_near(gp_Pnt p1,gp_Pnt p2,int tolerance)
     return points;
 };
 
-void CreateClipPlane(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Context,const gp_Pln ClipPlane1,gp_Pln ClipPlane2)
+void CreateClipPlane(Handle(V3d_View) aView,const gp_Pln ClipPlane1,gp_Pln ClipPlane2,Graphic3d_ClipPlane& p1,Graphic3d_ClipPlane& p2)
 {
-    const Handle(Graphic3d_ClipPlane)& aClipPlane1 = new Graphic3d_ClipPlane();
-    aClipPlane1->SetEquation (ClipPlane1);
-    aClipPlane1->SetCapping (true);
-    aView->AddClipPlane (aClipPlane1);
-    aClipPlane1->SetOn(Standard_True);
+    p1 = *new Graphic3d_ClipPlane();
+    p1.SetEquation (ClipPlane1);
+    p1.SetCapping (true);
+    aView->AddClipPlane (&p1);
+    p1.SetOn(Standard_True);
 //
-    const Handle(Graphic3d_ClipPlane)& aClipPlane2 = new Graphic3d_ClipPlane();
-    aClipPlane2->SetEquation (ClipPlane2);
-    aClipPlane2->SetCapping (true);
-    aView->AddClipPlane (aClipPlane2);
-    aClipPlane2->SetOn(Standard_True);
+    p2 = *new Graphic3d_ClipPlane();
+    p2.SetEquation (ClipPlane2);
+    p2.SetCapping (true);
+    aView->AddClipPlane (&p2);
+    p2.SetOn(Standard_True);
 
     // update the view
 
@@ -585,11 +605,16 @@ void drawLine(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Context,gp_P
 
     Handle(Geom_TrimmedCurve) aSegment1 = GC_MakeSegment(pt1, pt2);
     TopoDS_Edge anEdge1 = BRepBuilderAPI_MakeEdge(aSegment1);
-    TopoDS_Wire threadingWire1 = BRepBuilderAPI_MakeWire(anEdge1, anEdge1);
+    TopoDS_Wire threadingWire1 = BRepBuilderAPI_MakeWire(anEdge1);
     //display the vertex
     Handle(AIS_Shape) aisBody1 = new AIS_Shape(threadingWire1);
     Context->SetColor(aisBody1,Quantity_NOC_LAVENDER,Standard_False);
-    Context->SetMaterial(aisBody1,Graphic3d_NOM_PLASTIC,Standard_False);
+//    Context->SetMaterial(aisBody1,Graphic3d_NOM_PLASTIC,Standard_False);
+//    Handle(Prs3d_Drawer) myDrawer = Context->DefaultDrawer();
+//    Handle(Prs3d_LineAspect) Lasp = new Prs3d_LineAspect(Quantity_NOC_WHITESMOKE,Aspect_TOL_SOLID,10);
+//    myDrawer->SetLineAspect(Lasp);
+ //   aisBody1->SetAttributes( myDrawer );
+ //   aisBody1->UnsetSelectionMode();
     Context->Display(aisBody1,Standard_False);
     aView->Redraw();
 }
@@ -599,8 +624,10 @@ void CreateMainGrid(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Contex
  QStringList *XV,*YV,*ZV;
  vector<Standard_Real> Xn,Yn,Zn;
  gp_Pnt pt1,pt2;
- Standard_Real Xmax,Ymax,Zmax;
+ Standard_Real Xmax=0,Ymax=0,Zmax=0;
  Standard_Real Xcur,Ycur,Zcur;
+ vector<gp_Pnt*> Gridpoints;
+
  Xcur =0;
  Ycur =0;
  Zcur =0;
@@ -618,116 +645,113 @@ void CreateMainGrid(Handle(V3d_View) aView,Handle(AIS_InteractiveContext) Contex
  for (int i=0;i<XV->size();i++)
  {
      Xn.push_back(XV->at(i).toFloat());
-     Xmax += XV->at(i).toFloat();
  };
 
  Yn.push_back(Standard_Real(0));
  for (int i=0;i<YV->size();i++)
  {
      Yn.push_back(YV->at(i).toFloat());
-     Ymax += YV->at(i).toFloat();
  };
  Zn.push_back(Standard_Real(0));
  for (int i=0;i<ZV->size();i++)
  {
      Zn.push_back(ZV->at(i).toFloat());
-     Zmax += ZV->at(i).toFloat();
  };
 
-//  Xmax = *max_element(Xn.begin(), Xn.end());
-//  Ymax = *max_element(Yn.begin(), Yn.end());
-//  Zmax = *max_element(Zn.begin(), Zn.end());
+  Xmax = *max_element(Xn.begin(), Xn.end());
+  Ymax = *max_element(Yn.begin(), Yn.end());
+  Zmax = *max_element(Zn.begin(), Zn.end());
 
-
-
-
-switch (dir)
+ for (int z=0;z<Zn.size();z++)
  {
-  case 0:
-        {
-    for (int j=0;j<Yn.size();j++)
-    {
-        Ycur += Yn[j];
+     for (int y=0;y<Yn.size();y++)
+     {
+         for (int x=0;x<Xn.size();x++)
+         {
+             pt1 = gp_Pnt(Xn[x],0,Zn[z]);
+             pt2 = gp_Pnt(Xn[x],Ymax,Zn[z]);
+             drawLine(aView,Context,pt1,pt2);
+             Gridpoints.push_back(&pt1);
+             Gridpoints.push_back(&pt2);
+             //
+             pt1 = gp_Pnt(0,Yn[y],Zn[z]);
+             pt2 = gp_Pnt(Xmax,Yn[y],Zn[z]);
+             drawLine(aView,Context,pt1,pt2);
+             Gridpoints.push_back(&pt1);
+             Gridpoints.push_back(&pt2);
+             //
+             pt1 = gp_Pnt(Xn[x],Yn[y],0);
+             pt2 = gp_Pnt(Xn[x],Yn[y],Zmax);
+             drawLine(aView,Context,pt1,pt2);
+             Gridpoints.push_back(&pt1);
+             Gridpoints.push_back(&pt2);
 
-    for (int i=0;i<Xn.size();i++)
-    {
-          pt1 = gp_Pnt(start_Point.X(),     start_Point.Y()+Ycur,0);
-          pt2 = gp_Pnt(start_Point.X()+Xmax,start_Point.Y()+Ycur,0);
-          drawLine(aView,Context,pt1,pt2);
-    }
-    };
-    for (int j=0;j<Xn.size();j++)
-    {
-        Xcur += Xn[j];
+         }
+     }
 
-    for (int i=0;i<Yn.size();i++)
-    {
-          pt1 = gp_Pnt(start_Point.X()+Xcur,start_Point.Y(),0);
-          pt2 = gp_Pnt(start_Point.X()+Xcur,start_Point.Y()+Ymax,0);
-          drawLine(aView,Context,pt1,pt2);
-    }
+ }
 
+ auto P =deleteDuplicatePoints(Gridpoints);
 
-        }
-};
-  break;
-case 1:
-      {
-    for (int j=0;j<Zn.size();j++)
-    {
-        Zcur += Zn[j];
-
-    for (int i=0;i<Xn.size();i++)
-    {
-          pt1 = gp_Pnt(start_Point.X(),     start_Point.Y()+Zcur,0);
-          pt2 = gp_Pnt(start_Point.X()+Xmax,start_Point.Y()+Zcur,0);
-          drawLine(aView,Context,pt1,pt2);
-    }
-    };
-    for (int j=0;j<Xn.size();j++)
-    {
-        Xcur += Xn[j];
-
-    for (int i=0;i<Yn.size();i++)
-    {
-          pt1 = gp_Pnt(start_Point.X()+Xcur,start_Point.Z());
-          pt2 = gp_Pnt(start_Point.X()+Xcur,start_Point.Z()+Ymax,0);
-          drawLine(aView,Context,pt1,pt2);
-    }
+for (int i=0;i<P.size();i++)
+    DrawPoint(Context,*P[i]);
 
 
-        }
-      };
-    break;
-case 2:
-      {
-    for (int j=0;j<Yn.size();j++)
-    {
-        Ycur += Yn[j];
-
-    for (int i=0;i<Xn.size();i++)
-    {
-          pt1 = gp_Pnt(start_Point.X(),     start_Point.Y()+Ycur,0);
-          pt2 = gp_Pnt(start_Point.X()+Xmax,start_Point.Y()+Ycur,0);
-          drawLine(aView,Context,pt1,pt2);
-    }
-    };
-    for (int j=0;j<Xn.size();j++)
-    {
-        Xcur += Xn[j];
-
-    for (int i=0;i<Yn.size();i++)
-    {
-          pt1 = gp_Pnt(start_Point.X()+Xcur,start_Point.Y(),0);
-          pt2 = gp_Pnt(start_Point.X()+Xcur,start_Point.Y()+Ymax,0);
-          drawLine(aView,Context,pt1,pt2);
-    }
-
-
-        }
-      };
-    break;
 
 }
 
+Standard_Boolean Convert2dPntTo3dPnt(const Handle_V3d_View& aView, const Standard_Integer aX2d, const Standard_Integer aY2d, gp_Pnt& a3dPoint)
+{
+if (aView.IsNull())
+return Standard_False;
+
+// get the eye and the target points
+V3d_Coordinate theXEye, theYEye, theZEye, theXAt, theYAt, theZAt;
+aView->Eye(theXEye, theYEye, theZEye);
+aView->At(theXAt, theYAt, theZAt);
+gp_Pnt theEyePoint(theXEye, theYEye, theZEye);
+gp_Pnt theAtPoint(theXAt, theYAt, theZAt);
+
+// create the direction
+gp_Vec theEyeVector(theEyePoint, theAtPoint);
+gp_Dir theEyeDir(theEyeVector);
+
+// make a plane perpendicular to this direction
+gp_Pln thePlaneOfTheView = gp_Pln(theAtPoint, theEyeDir);
+
+
+// convert the 2d point into 3d
+Standard_Real theX, theY, theZ;
+aView->Convert(aX2d, aY2d, theX, theY, theZ);
+gp_Pnt theConvertedPoint(theX, theY, theZ);
+
+// project the converted point to the plane
+gp_Pnt2d theConvertedPointOnPlane = ProjLib::Project(thePlaneOfTheView, theConvertedPoint);
+
+// get the 3d point of this 2d point
+gp_Pnt theResultPoint = ElSLib::Value(theConvertedPointOnPlane.X(),	theConvertedPointOnPlane.Y(), thePlaneOfTheView);
+a3dPoint = theResultPoint;
+return Standard_True;
+}
+
+gp_Pnt convert2DpointTo3DPointOnPlane(Standard_Real x, Standard_Real y, Handle(V3d_View) view)
+{
+    Standard_Real Xp = x, Yp = y;
+    Standard_Real Xv, Yv, Zv;
+    Standard_Real Vx, Vy, Vz;
+
+    gp_Pln aPlane(view->Viewer()->PrivilegedPlane());
+    view->Convert( Xp, Yp, Xv, Yv, Zv );
+    view->Proj( Vx, Vy, Vz );
+
+    gp_Lin aLine(gp_Pnt(Xv, Yv, Zv), gp_Dir(Vx, Vy, Vz));
+    IntAna_IntConicQuad theIntersection (aLine, aPlane, Precision::Angular());
+    if (theIntersection.IsDone()) {
+        if (!theIntersection.IsParallel()) {
+            if (theIntersection.NbPoints() > 0) {
+                gp_Pnt theSolution(theIntersection.Point(1));
+                return gp_Pnt(theSolution.X(), theSolution.Y(), theSolution.Z());
+            }
+        }
+    }
 }
